@@ -1,6 +1,6 @@
 """
 PaymentPermit 合约 Facilitator 测试 - Tron Nile 测试网
-合约地址: TAEdFsHKjfd3XT4TxaxjPa8TceKX5uVdwa
+合约地址: TDw6aSVuoix8vuXdrZgVXyejpCnmuvyjbF
 核心测试: settle 执行
 """
 

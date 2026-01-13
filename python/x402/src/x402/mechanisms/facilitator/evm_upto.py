@@ -2,9 +2,11 @@
 UptoEvmFacilitatorMechanism - "upto" 支付方案的 EVM facilitator 机制
 """
 
+import json
 import time
 from typing import Any, TYPE_CHECKING
 
+from x402.abi import PAYMENT_PERMIT_ABI, MERCHANT_ABI, get_abi_json
 from x402.mechanisms.facilitator.base import FacilitatorMechanism
 from x402.types import (
     PaymentPayload,
@@ -180,11 +182,11 @@ class UptoEvmFacilitatorMechanism(FacilitatorMechanism):
 
     def _get_payment_permit_abi(self) -> str:
         """Get payment permit contract ABI"""
-        return "[]"  # TODO: Add actual ABI
+        return get_abi_json(PAYMENT_PERMIT_ABI)
 
     def _get_merchant_abi(self) -> str:
         """Get merchant contract ABI"""
-        return "[]"  # TODO: Add actual ABI
+        return get_abi_json(MERCHANT_ABI)
 
     def _get_eip712_types(self) -> dict[str, Any]:
         """Get EIP-712 type definitions"""

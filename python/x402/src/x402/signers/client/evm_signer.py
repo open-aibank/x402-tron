@@ -4,6 +4,7 @@ EvmClientSigner - EVM 客户端签名器实现
 
 from typing import Any
 
+from x402.abi import ERC20_ABI
 from x402.signers.client.base import ClientSigner
 
 
@@ -113,17 +114,6 @@ class EvmClientSigner(ClientSigner):
             return 0
 
         try:
-            ERC20_ABI = [
-                {
-                    "name": "allowance",
-                    "type": "function",
-                    "inputs": [
-                        {"name": "owner", "type": "address"},
-                        {"name": "spender", "type": "address"},
-                    ],
-                    "outputs": [{"name": "", "type": "uint256"}],
-                }
-            ]
             contract = web3.eth.contract(
                 address=web3.to_checksum_address(token),
                 abi=ERC20_ABI,
@@ -159,17 +149,6 @@ class EvmClientSigner(ClientSigner):
             raise RuntimeError("web3 instance required for approval")
 
         try:
-            ERC20_ABI = [
-                {
-                    "name": "approve",
-                    "type": "function",
-                    "inputs": [
-                        {"name": "spender", "type": "address"},
-                        {"name": "amount", "type": "uint256"},
-                    ],
-                    "outputs": [{"name": "", "type": "bool"}],
-                }
-            ]
             contract = web3.eth.contract(
                 address=web3.to_checksum_address(token),
                 abi=ERC20_ABI,

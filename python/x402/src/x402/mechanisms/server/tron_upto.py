@@ -33,7 +33,7 @@ TRON_KNOWN_TOKENS: dict[str, dict[str, Any]] = {
     },
     "tron:nile": {
         "USDT": {
-            "address": "TXLAQ63Xg1NAzckPwKHvzw7CSEmLMEqcdj",
+            "address": "TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf",
             "decimals": 6,
             "name": "Tether USD",
             "version": "1",
