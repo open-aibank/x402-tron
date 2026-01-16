@@ -16,6 +16,7 @@ from x402.types import (
     VerifyResponse,
     SettleResponse,
     FeeQuoteResponse,
+    PAYMENT_ONLY,
 )
 
 
@@ -52,7 +53,7 @@ class ResourceConfig:
     price: str
     pay_to: str
     valid_for: int = 3600
-    delivery_mode: str = "PAYMENT_ONLY"
+    delivery_mode: str = PAYMENT_ONLY
 
 
 class X402Server:
@@ -159,7 +160,7 @@ class X402Server:
         extensions = PaymentRequiredExtensions(
             paymentPermitContext=PaymentPermitContext(
                 meta=PaymentPermitContextMeta(
-                    kind="PAYMENT_ONLY",
+                    kind=PAYMENT_ONLY,
                     paymentId=payment_id or str(uuid.uuid4()),
                     nonce=nonce or str(uuid.uuid4().int),
                     validAfter=valid_after or now,

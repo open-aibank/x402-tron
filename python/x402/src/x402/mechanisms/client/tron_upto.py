@@ -4,7 +4,6 @@ UptoTronClientMechanism - "upto" 支付方案的 TRON 客户端机制
 
 import logging
 from typing import Any, TYPE_CHECKING
-import base58
 
 from x402.abi import get_payment_permit_eip712_types
 from x402.mechanisms.client.base import ClientMechanism
@@ -18,59 +17,15 @@ from x402.types import (
     Fee,
     Delivery,
     ResourceInfo,
+    KIND_MAP,
+    PAYMENT_ONLY,
 )
+from x402.utils import normalize_tron_address, tron_address_to_evm
 
 if TYPE_CHECKING:
     from x402.signers.client import ClientSigner
 
 logger = logging.getLogger(__name__)
-
-# Kind mapping for EIP-712
-KIND_MAP = {
-    "PAYMENT_ONLY": 0,
-    "PAYMENT_AND_DELIVERY": 1,
-}
-
-
-def normalize_tron_address(tron_addr: str) -> str:
-    """Normalize TRON address, converting invalid placeholders to valid zero address"""
-    # Handle zero address placeholder (T0000... or similar)
-    if tron_addr.startswith("T") and all(c in "0T" for c in tron_addr):
-        # Return valid TRON zero address with correct checksum
-        return "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb"
-    return tron_addr
-
-
-def tron_address_to_evm(tron_addr: str) -> str:
-    """Convert TRON Base58Check address to EVM hex format (0x...)"""
-    # Normalize address first
-    tron_addr = normalize_tron_address(tron_addr)
-    
-    # If already in EVM format, return as-is
-    if tron_addr.startswith("0x"):
-        return tron_addr
-    
-    # If it's a hex string (with or without 0x prefix), normalize to 0x format
-    # Check if it looks like a hex address (40 or 42 chars of hex digits, possibly with 0x or 41 prefix)
-    hex_str = tron_addr
-    if tron_addr.startswith("41"):
-        # Remove TRON version prefix
-        hex_str = tron_addr[2:]
-    
-    if len(hex_str) == 40 and all(c in "0123456789abcdefABCDEF" for c in hex_str):
-        return "0x" + hex_str
-    
-    try:
-        # Decode Base58Check (for TRON addresses like TLBaRhANhwgZyUk6Z1ynCn1Ld7BRH1jBjZ)
-        decoded = base58.b58decode(tron_addr)
-        # TRON address is 25 bytes: 1 byte version + 20 bytes address + 4 bytes checksum
-        # Extract the 20-byte address (skip first byte, take next 20)
-        address_bytes = decoded[1:21]
-        # Convert to hex with 0x prefix
-        return "0x" + address_bytes.hex()
-    except Exception as e:
-        logger.warning(f"Failed to convert TRON address {tron_addr}: {e}, using as-is")
-        return tron_addr
 
 
 class UptoTronClientMechanism(ClientMechanism):
@@ -107,8 +62,11 @@ class UptoTronClientMechanism(ClientMechanism):
             fee_to = requirements.extra.fee.fee_to
             fee_amount = requirements.extra.fee.fee_amount
 
-        kind_str = meta.get("kind", "PAYMENT_ONLY")
+        kind_str = meta.get("kind", PAYMENT_ONLY)
         kind_num = KIND_MAP.get(kind_str, 0)
+        
+        # Get caller from context, default to zero address if not provided
+        caller = context.get("caller", "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb")  # Zero address in TRON format
         
         permit = PaymentPermit(
             meta=PermitMeta(
@@ -119,7 +77,7 @@ class UptoTronClientMechanism(ClientMechanism):
                 validBefore=meta.get("validBefore", 0),
             ),
             buyer=buyer_address,
-            caller=fee_to,
+            caller=caller,
             payment=Payment(
                 payToken=normalize_tron_address(requirements.asset),
                 maxPayAmount=requirements.amount,
@@ -149,6 +107,14 @@ class UptoTronClientMechanism(ClientMechanism):
         # Convert permit to dict and replace kind string with numeric value for EIP-712
         message = permit.model_dump(by_alias=True)
         message["meta"]["kind"] = kind_num
+        
+        # Convert string values to integers for EIP-712 compatibility
+        # EIP-712 expects uint256 types to be integers, not strings
+        message["meta"]["nonce"] = int(message["meta"]["nonce"])
+        message["payment"]["maxPayAmount"] = int(message["payment"]["maxPayAmount"])
+        message["fee"]["feeAmount"] = int(message["fee"]["feeAmount"])
+        message["delivery"]["miniReceiveAmount"] = int(message["delivery"]["miniReceiveAmount"])
+        message["delivery"]["tokenId"] = int(message["delivery"]["tokenId"])
         
         # Convert TRON addresses to EVM format for EIP-712 compatibility
         message["buyer"] = tron_address_to_evm(message["buyer"])

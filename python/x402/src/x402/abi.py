@@ -200,61 +200,151 @@ PAYMENT_PERMIT_ABI: List[dict[str, Any]] = [
 ]
 
 # Merchant contract ABI
+# Contract Address (TRON Nile): TG8qo5fX3YM6mXPFG7JAyLPbqpebzMCE1n
+# Contract Address (Hex): 4143a336469a117979d9277e8f7ed59aa55eda75fc
 MERCHANT_ABI: List[dict[str, Any]] = [
     {
-        "name": "settle",
-        "type": "function",
+        "inputs": [
+            {"internalType": "address", "name": "_paymentPermit", "type": "address"},
+            {"internalType": "address", "name": "_agent", "type": "address"}
+        ],
         "stateMutability": "nonpayable",
+        "type": "constructor"
+    },
+    {
+        "inputs": [],
+        "name": "agent",
+        "outputs": [{"internalType": "address", "name": "", "type": "address"}],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "paymentPermit",
+        "outputs": [{"internalType": "contract IPaymentPermit", "name": "", "type": "address"}],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
         "inputs": [
             {
-                "name": "permit",
-                "type": "tuple",
                 "components": [
                     {
+                        "components": [
+                            {"internalType": "uint8", "name": "kind", "type": "uint8"},
+                            {"internalType": "bytes16", "name": "paymentId", "type": "bytes16"},
+                            {"internalType": "uint256", "name": "nonce", "type": "uint256"},
+                            {"internalType": "uint256", "name": "validAfter", "type": "uint256"},
+                            {"internalType": "uint256", "name": "validBefore", "type": "uint256"}
+                        ],
+                        "internalType": "struct IPaymentPermit.PermitMeta",
                         "name": "meta",
-                        "type": "tuple",
-                        "components": [
-                            {"name": "kind", "type": "uint8"},
-                            {"name": "paymentId", "type": "bytes16"},
-                            {"name": "nonce", "type": "uint256"},
-                            {"name": "validAfter", "type": "uint256"},
-                            {"name": "validBefore", "type": "uint256"},
-                        ],
+                        "type": "tuple"
                     },
-                    {"name": "buyer", "type": "address"},
-                    {"name": "caller", "type": "address"},
+                    {"internalType": "address", "name": "buyer", "type": "address"},
+                    {"internalType": "address", "name": "caller", "type": "address"},
                     {
+                        "components": [
+                            {"internalType": "address", "name": "payToken", "type": "address"},
+                            {"internalType": "uint256", "name": "maxPayAmount", "type": "uint256"},
+                            {"internalType": "address", "name": "payTo", "type": "address"}
+                        ],
+                        "internalType": "struct IPaymentPermit.Payment",
                         "name": "payment",
-                        "type": "tuple",
-                        "components": [
-                            {"name": "payToken", "type": "address"},
-                            {"name": "maxPayAmount", "type": "uint256"},
-                            {"name": "payTo", "type": "address"},
-                        ],
+                        "type": "tuple"
                     },
                     {
+                        "components": [
+                            {"internalType": "address", "name": "feeTo", "type": "address"},
+                            {"internalType": "uint256", "name": "feeAmount", "type": "uint256"}
+                        ],
+                        "internalType": "struct IPaymentPermit.Fee",
                         "name": "fee",
-                        "type": "tuple",
-                        "components": [
-                            {"name": "feeTo", "type": "address"},
-                            {"name": "feeAmount", "type": "uint256"},
-                        ],
+                        "type": "tuple"
                     },
                     {
-                        "name": "delivery",
-                        "type": "tuple",
                         "components": [
-                            {"name": "receiveToken", "type": "address"},
-                            {"name": "miniReceiveAmount", "type": "uint256"},
-                            {"name": "tokenId", "type": "uint256"},
+                            {"internalType": "address", "name": "receiveToken", "type": "address"},
+                            {"internalType": "uint256", "name": "miniReceiveAmount", "type": "uint256"},
+                            {"internalType": "uint256", "name": "tokenId", "type": "uint256"}
                         ],
-                    },
+                        "internalType": "struct IPaymentPermit.Delivery",
+                        "name": "delivery",
+                        "type": "tuple"
+                    }
                 ],
+                "internalType": "struct IPaymentPermit.PaymentPermitDetails",
+                "name": "permit",
+                "type": "tuple"
             },
-            {"name": "signature", "type": "bytes"},
+            {"internalType": "bytes", "name": "signature", "type": "bytes"}
         ],
+        "name": "settle",
         "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
     },
+    {
+        "inputs": [
+            {
+                "components": [
+                    {
+                        "components": [
+                            {"internalType": "uint8", "name": "kind", "type": "uint8"},
+                            {"internalType": "bytes16", "name": "paymentId", "type": "bytes16"},
+                            {"internalType": "uint256", "name": "nonce", "type": "uint256"},
+                            {"internalType": "uint256", "name": "validAfter", "type": "uint256"},
+                            {"internalType": "uint256", "name": "validBefore", "type": "uint256"}
+                        ],
+                        "internalType": "struct IPaymentPermit.PermitMeta",
+                        "name": "meta",
+                        "type": "tuple"
+                    },
+                    {"internalType": "address", "name": "buyer", "type": "address"},
+                    {"internalType": "address", "name": "caller", "type": "address"},
+                    {
+                        "components": [
+                            {"internalType": "address", "name": "payToken", "type": "address"},
+                            {"internalType": "uint256", "name": "maxPayAmount", "type": "uint256"},
+                            {"internalType": "address", "name": "payTo", "type": "address"}
+                        ],
+                        "internalType": "struct IPaymentPermit.Payment",
+                        "name": "payment",
+                        "type": "tuple"
+                    },
+                    {
+                        "components": [
+                            {"internalType": "address", "name": "feeTo", "type": "address"},
+                            {"internalType": "uint256", "name": "feeAmount", "type": "uint256"}
+                        ],
+                        "internalType": "struct IPaymentPermit.Fee",
+                        "name": "fee",
+                        "type": "tuple"
+                    },
+                    {
+                        "components": [
+                            {"internalType": "address", "name": "receiveToken", "type": "address"},
+                            {"internalType": "uint256", "name": "miniReceiveAmount", "type": "uint256"},
+                            {"internalType": "uint256", "name": "tokenId", "type": "uint256"}
+                        ],
+                        "internalType": "struct IPaymentPermit.Delivery",
+                        "name": "delivery",
+                        "type": "tuple"
+                    }
+                ],
+                "internalType": "struct IPaymentPermit.PaymentPermitDetails",
+                "name": "permit",
+                "type": "tuple"
+            },
+            {"internalType": "bytes", "name": "merchantData", "type": "bytes"},
+            {"internalType": "bytes", "name": "signature", "type": "bytes"},
+            {"internalType": "bytes", "name": "merchantSignature", "type": "bytes"}
+        ],
+        "name": "settle",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    }
 ]
 
 

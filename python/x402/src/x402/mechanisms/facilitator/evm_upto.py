@@ -15,6 +15,7 @@ from x402.types import (
     SettleResponse,
     FeeQuoteResponse,
     FeeInfo,
+    PAYMENT_AND_DELIVERY,
 )
 
 if TYPE_CHECKING:
@@ -121,7 +122,7 @@ class UptoEvmFacilitatorMechanism(FacilitatorMechanism):
         signature = payload.payload.signature
 
         kind = permit.meta.kind
-        if kind == "PAYMENT_AND_DELIVERY":
+        if kind == PAYMENT_AND_DELIVERY:
             tx_hash = await self._settle_with_delivery(permit, signature, requirements)
         else:
             tx_hash = await self._settle_payment_only(permit, signature, requirements)

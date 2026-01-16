@@ -199,9 +199,12 @@ class TronClientSigner(ClientSigner):
             )
             logger.info("Broadcasting approval transaction...")
             result = txn.broadcast().wait()
-            success = result.get("result", False)
+            # Check receipt.result for success (TRON returns "SUCCESS" in receipt)
+            receipt = result.get("receipt", {})
+            receipt_result = receipt.get("result", "")
+            success = receipt_result == "SUCCESS"
             if success:
-                logger.info(f"Approval successful: txid={result.get('txid')}")
+                logger.info(f"Approval successful: txid={result.get('id')}")
             else:
                 logger.warning(f"Approval failed: {result}")
             return success

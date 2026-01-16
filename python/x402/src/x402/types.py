@@ -6,7 +6,17 @@ from typing import Any, Literal, Optional
 from pydantic import BaseModel, Field
 
 
+# Delivery Kind constants
+PAYMENT_ONLY = "PAYMENT_ONLY"
+PAYMENT_AND_DELIVERY = "PAYMENT_AND_DELIVERY"
+
 DeliveryKind = Literal["PAYMENT_ONLY", "PAYMENT_AND_DELIVERY"]
+
+# Kind mapping for EIP-712 (string to numeric)
+KIND_MAP = {
+    PAYMENT_ONLY: 0,
+    PAYMENT_AND_DELIVERY: 1,
+}
 
 
 class PermitMeta(BaseModel):
@@ -116,6 +126,7 @@ class PaymentPermitContextDelivery(BaseModel):
 class PaymentPermitContext(BaseModel):
     """来自扩展的支付许可上下文"""
     meta: PaymentPermitContextMeta
+    caller: Optional[str] = None  # 可选的 caller 地址，零地址表示允许任何地址调用
     delivery: PaymentPermitContextDelivery
 
 

@@ -182,50 +182,37 @@ class TronFacilitatorSigner(FacilitatorSigner):
             return None
     
     def _log_contract_parameters(self, method: str, args: list[Any], logger: Any) -> None:
-        """Log contract call parameters in detail"""
+        """Log contract call parameters as a complete JSON"""
         try:
-            output_lines = [
-                "========================================",
-                "Contract Call Parameters:",
-                "========================================",
-                f"Method: {method}",
-                f"Number of arguments: {len(args)}",
-            ]
+            import json
             
-            for i, arg in enumerate(args):
-                output_lines.append(f"\nArgument {i}:")
-                self._format_parameter_value(arg, output_lines, indent=2)
+            # Convert arguments to JSON-serializable format
+            def serialize_value(value: Any) -> Any:
+                """Recursively convert values to JSON-serializable format"""
+                if isinstance(value, bytes):
+                    return f"0x{value.hex()}"
+                elif isinstance(value, (tuple, list)):
+                    return [serialize_value(item) for item in value]
+                elif isinstance(value, dict):
+                    return {k: serialize_value(v) for k, v in value.items()}
+                elif isinstance(value, int):
+                    return {"decimal": value, "hex": f"0x{value:x}"}
+                elif isinstance(value, str):
+                    return value
+                else:
+                    return str(value)
             
-            output_lines.append("\n========================================\n")
+            # Build the complete parameter structure
+            contract_call = {
+                "method": method,
+                "arguments": [serialize_value(arg) for arg in args]
+            }
             
-            # Output all at once
-            logger.info("\n".join(output_lines))
+            # Output as formatted JSON
+            json_output = json.dumps(contract_call, indent=2, ensure_ascii=False)
+            logger.info(f"\n{'='*80}\nContract Call Parameters:\n{'='*80}\n{json_output}\n{'='*80}")
         except Exception as e:
             logger.warning(f"Failed to log contract parameters: {e}")
-    
-    def _format_parameter_value(self, value: Any, output_lines: list[str], indent: int = 0) -> None:
-        """Recursively format parameter values with proper formatting"""
-        indent_str = " " * indent
-        
-        if isinstance(value, (tuple, list)):
-            output_lines.append(f"{indent_str}Type: {type(value).__name__}, Length: {len(value)}")
-            for i, item in enumerate(value):
-                output_lines.append(f"{indent_str}  [{i}]:")
-                self._format_parameter_value(item, output_lines, indent + 4)
-        elif isinstance(value, bytes):
-            output_lines.append(f"{indent_str}Type: bytes, Length: {len(value)}")
-            output_lines.append(f"{indent_str}Hex: 0x{value.hex()}")
-        elif isinstance(value, str):
-            output_lines.append(f"{indent_str}Type: str, Value: {value}")
-        elif isinstance(value, int):
-            output_lines.append(f"{indent_str}Type: int, Value: {value} (0x{value:x})")
-        elif isinstance(value, dict):
-            output_lines.append(f"{indent_str}Type: dict, Keys: {list(value.keys())}")
-            for key, val in value.items():
-                output_lines.append(f"{indent_str}  {key}:")
-                self._format_parameter_value(val, output_lines, indent + 4)
-        else:
-            output_lines.append(f"{indent_str}Type: {type(value).__name__}, Value: {value}")
     
     async def wait_for_transaction_receipt(
         self,

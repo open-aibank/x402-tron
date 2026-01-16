@@ -16,6 +16,7 @@ from x402.types import (
     Fee,
     Delivery,
     ResourceInfo,
+    PAYMENT_ONLY,
 )
 
 if TYPE_CHECKING:
@@ -52,16 +53,19 @@ class UptoEvmClientMechanism(ClientMechanism):
             fee_to = requirements.extra.fee.fee_to
             fee_amount = requirements.extra.fee.fee_amount
 
+        # Get caller from context, default to zero address if not provided
+        caller = context.get("caller", "0x0000000000000000000000000000000000000000")
+
         permit = PaymentPermit(
             meta=PermitMeta(
-                kind=meta.get("kind", "PAYMENT_ONLY"),
+                kind=meta.get("kind", PAYMENT_ONLY),
                 paymentId=meta.get("paymentId", ""),
                 nonce=str(meta.get("nonce", "0")),
                 validAfter=meta.get("validAfter", 0),
                 validBefore=meta.get("validBefore", 0),
             ),
             buyer=buyer_address,
-            caller=fee_to,
+            caller=caller,
             payment=Payment(
                 payToken=requirements.asset,
                 maxPayAmount=requirements.amount,
@@ -90,6 +94,19 @@ class UptoEvmClientMechanism(ClientMechanism):
         permit_address = NetworkConfig.get_payment_permit_address(requirements.network)
         chain_id = NetworkConfig.get_chain_id(requirements.network)
         
+        # Convert permit to dict for EIP-712 signing
+        message = permit.model_dump(by_alias=True)
+        
+        # Convert string values to integers for EIP-712 compatibility
+        # EIP-712 expects uint256 types to be integers, not strings
+        from x402.types import KIND_MAP
+        message["meta"]["kind"] = KIND_MAP.get(message["meta"]["kind"], 0)
+        message["meta"]["nonce"] = int(message["meta"]["nonce"])
+        message["payment"]["maxPayAmount"] = int(message["payment"]["maxPayAmount"])
+        message["fee"]["feeAmount"] = int(message["fee"]["feeAmount"])
+        message["delivery"]["miniReceiveAmount"] = int(message["delivery"]["miniReceiveAmount"])
+        message["delivery"]["tokenId"] = int(message["delivery"]["tokenId"])
+        
         # Note: Contract EIP712Domain only has (name, chainId, verifyingContract) - NO version!
         signature = await self._signer.sign_typed_data(
             domain={
@@ -98,7 +115,7 @@ class UptoEvmClientMechanism(ClientMechanism):
                 "verifyingContract": permit_address,
             },
             types=get_payment_permit_eip712_types(),
-            message=permit.model_dump(by_alias=True),
+            message=message,
         )
 
         return PaymentPayload(

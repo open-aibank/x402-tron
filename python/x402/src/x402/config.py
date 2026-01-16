@@ -20,7 +20,8 @@ class NetworkConfig:
     PAYMENT_PERMIT_ADDRESSES: Dict[str, str] = {
         "tron:mainnet": "T...",  # TODO: Deploy and fill
         "tron:shasta": "T...",
-        "tron:nile": "TDw6aSVuoix8vuXdrZgVXyejpCnmuvyjbF",
+        # "tron:nile": "TDw6aSVuoix8vuXdrZgVXyejpCnmuvyjbF",
+        "tron:nile": "TCgKLk57cH8U99kfx3rmiZL5wCc3q5Wdz4",
     }
 
     @classmethod

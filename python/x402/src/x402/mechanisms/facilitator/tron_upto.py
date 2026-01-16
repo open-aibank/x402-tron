@@ -6,7 +6,6 @@ import json
 import logging
 import time
 from typing import Any, TYPE_CHECKING
-import base58
 
 from x402.abi import PAYMENT_PERMIT_ABI, MERCHANT_ABI, get_abi_json, get_payment_permit_eip712_types
 from x402.config import NetworkConfig
@@ -18,59 +17,15 @@ from x402.types import (
     SettleResponse,
     FeeQuoteResponse,
     FeeInfo,
+    KIND_MAP,
+    PAYMENT_AND_DELIVERY,
 )
+from x402.utils import normalize_tron_address, tron_address_to_evm
 
 if TYPE_CHECKING:
     from x402.signers.facilitator import FacilitatorSigner
 
 logger = logging.getLogger(__name__)
-
-# Kind mapping for EIP-712
-KIND_MAP = {
-    "PAYMENT_ONLY": 0,
-    "PAYMENT_AND_DELIVERY": 1,
-}
-
-
-def normalize_tron_address(tron_addr: str) -> str:
-    """Normalize TRON address, converting invalid placeholders to valid zero address"""
-    # Handle zero address placeholder (T0000... or similar)
-    if tron_addr.startswith("T") and all(c in "0T" for c in tron_addr):
-        # Return valid TRON zero address with correct checksum
-        return "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb"
-    return tron_addr
-
-
-def tron_address_to_evm(tron_addr: str) -> str:
-    """Convert TRON Base58Check address to EVM hex format (0x...)"""
-    # Normalize address first
-    tron_addr = normalize_tron_address(tron_addr)
-    
-    # If already in EVM format, return as-is
-    if tron_addr.startswith("0x"):
-        return tron_addr
-    
-    # If it's a hex string (with or without 0x prefix), normalize to 0x format
-    # Check if it looks like a hex address (40 or 42 chars of hex digits, possibly with 0x or 41 prefix)
-    hex_str = tron_addr
-    if tron_addr.startswith("41"):
-        # Remove TRON version prefix
-        hex_str = tron_addr[2:]
-    
-    if len(hex_str) == 40 and all(c in "0123456789abcdefABCDEF" for c in hex_str):
-        return "0x" + hex_str
-    
-    try:
-        # Decode Base58Check (for TRON addresses like TLBaRhANhwgZyUk6Z1ynCn1Ld7BRH1jBjZ)
-        decoded = base58.b58decode(tron_addr)
-        # TRON address is 25 bytes: 1 byte version + 20 bytes address + 4 bytes checksum
-        # Extract the 20-byte address (skip first byte, take next 20)
-        address_bytes = decoded[1:21]
-        # Convert to hex with 0x prefix
-        return "0x" + address_bytes.hex()
-    except Exception as e:
-        logger.warning(f"Failed to convert TRON address {tron_addr}: {e}, using as-is")
-        return tron_addr
 
 
 class UptoTronFacilitatorMechanism(FacilitatorMechanism):
@@ -188,6 +143,7 @@ class UptoTronFacilitatorMechanism(FacilitatorMechanism):
         """Execute payment settlement on TRON"""
         permit = payload.payload.payment_permit
         logger.info(f"Starting settlement: paymentId={permit.meta.payment_id}, kind={permit.meta.kind}, network={requirements.network}")
+        logger.info(f"Permit validBefore from payload: {permit.meta.valid_before}, validAfter: {permit.meta.valid_after}")
         
         verify_result = await self.verify(payload, requirements)
         if not verify_result.is_valid:
@@ -201,7 +157,7 @@ class UptoTronFacilitatorMechanism(FacilitatorMechanism):
         signature = payload.payload.signature
 
         kind = permit.meta.kind
-        if kind == "PAYMENT_AND_DELIVERY":
+        if kind == PAYMENT_AND_DELIVERY:
             logger.info("Settling with delivery via merchant contract...")
             tx_hash = await self._settle_with_delivery(permit, signature, requirements)
         else:
@@ -254,6 +210,7 @@ class UptoTronFacilitatorMechanism(FacilitatorMechanism):
         logger.info(f"Settlement addresses: buyer={buyer}, caller={caller}, pay_token={pay_token}, pay_to={pay_to}, fee_to={fee_to}, receive_token={receive_token}")
         logger.info(f"Settlement amounts: max_pay={permit.payment.max_pay_amount}, fee={permit.fee.fee_amount}")
         logger.info(f"Settlement meta: kind={permit.meta.kind}, paymentId={permit.meta.payment_id}, nonce={permit.meta.nonce}")
+        logger.info(f"Settlement time: validAfter={permit.meta.valid_after}, validBefore={permit.meta.valid_before}, current_time={int(time.time())}")
         
         # Build PaymentPermit tuple for contract call
         # Contract struct: (PermitMeta meta, address buyer, address caller, Payment payment, Fee fee, Delivery delivery)
@@ -319,11 +276,66 @@ class UptoTronFacilitatorMechanism(FacilitatorMechanism):
         """Settle with on-chain delivery via merchant contract"""
         merchant_address = self._get_merchant_address(requirements)
         logger.info(f"Calling settle on merchant contract={merchant_address}")
+        logger.info(f"[_settle_with_delivery] Original paymentId from permit: {permit.meta.payment_id}")
+        
+        # Convert paymentId to bytes if it's a hex string
+        payment_id = permit.meta.payment_id
+        if isinstance(payment_id, str):
+            payment_id = bytes.fromhex(payment_id[2:] if payment_id.startswith("0x") else payment_id)
+        
+        logger.info(f"[_settle_with_delivery] Converted paymentId (bytes hex): 0x{payment_id.hex()}")
+        
+        # Normalize addresses to ensure valid Base58Check format
+        # Note: tronpy requires TRON format addresses (T...), not EVM format (0x...)
+        buyer = normalize_tron_address(permit.buyer)
+        caller = normalize_tron_address(permit.caller)
+        pay_token = normalize_tron_address(permit.payment.pay_token)
+        pay_to = normalize_tron_address(permit.payment.pay_to)
+        fee_to = normalize_tron_address(permit.fee.fee_to)
+        receive_token = normalize_tron_address(permit.delivery.receive_token)
+        
+        logger.info(f"[_settle_with_delivery] buyer={buyer}, caller={caller}")
+        logger.info(f"[_settle_with_delivery] pay_token={pay_token}, pay_to={pay_to}")
+        logger.info(f"[_settle_with_delivery] fee_to={fee_to}, receive_token={receive_token}")
+        logger.info(f"[_settle_with_delivery] meta: kind={permit.meta.kind}, nonce={permit.meta.nonce}")
+        logger.info(f"[_settle_with_delivery] time: validAfter={permit.meta.valid_after}, validBefore={permit.meta.valid_before}, current_time={int(time.time())}")
+        logger.info(f"[_settle_with_delivery] delivery: miniReceiveAmount={permit.delivery.mini_receive_amount}, tokenId={permit.delivery.token_id}")
+        
+        # Build PaymentPermit tuple for contract call
+        permit_tuple = (
+            (  # meta tuple
+                KIND_MAP.get(permit.meta.kind, 0),
+                payment_id,
+                int(permit.meta.nonce),
+                permit.meta.valid_after,
+                permit.meta.valid_before,
+            ),
+            buyer,
+            caller,
+            (  # payment tuple
+                pay_token,
+                int(permit.payment.max_pay_amount),
+                pay_to,
+            ),
+            (  # fee tuple
+                fee_to,
+                int(permit.fee.fee_amount),
+            ),
+            (  # delivery tuple
+                receive_token,
+                int(permit.delivery.mini_receive_amount),
+                int(permit.delivery.token_id),
+            ),
+        )
+        
+        # Convert signature hex string to bytes
+        sig_bytes = bytes.fromhex(signature[2:] if signature.startswith("0x") else signature)
+        
         return await self._signer.write_contract(
             contract_address=merchant_address,
             abi=self._get_merchant_abi(),
             method="settle",
-            args=[permit.model_dump(by_alias=True), signature],
+            args=[permit_tuple, sig_bytes],
         )
 
     def _get_payment_permit_address(self, network: str) -> str:
