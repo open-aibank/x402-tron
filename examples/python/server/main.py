@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from x402.server import X402Server
 from x402.fastapi import x402_protected
 from x402.facilitator import FacilitatorClient
@@ -10,6 +11,16 @@ from x402.mechanisms.server import UptoTronServerMechanism
 load_dotenv(Path(__file__).parent.parent.parent.parent / ".env")
 
 app = FastAPI(title="X402 Server", description="Protected resource server")
+
+# Add CORS middleware to allow cross-origin requests from client-web
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # In production, specify exact origins
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+    expose_headers=["*"],
+)
 
 # Configuration
 TRON_NETWORK = "tron:nile"  # Hardcoded network

@@ -1,128 +1,132 @@
 /**
  * TronClientSigner - TRON client signer for x402 protocol
+ *
+ * Uses TronWeb's signTypedData (TIP-712) for EIP-712 compatible signing.
  */
 
 import type { ClientSigner } from '@x402/core';
+import { getChainId, getPaymentPermitAddress, toEvmHex, type Hex } from '@x402/core';
+import type { TronWeb, TypedDataDomain, TypedDataField, TronNetwork } from './types';
 
-/** TronWeb instance type (from tronweb package) */
-interface TronWeb {
-  address: {
-    fromPrivateKey(privateKey: string): string;
-    toHex(address: string): string;
-  };
-  trx: {
-    sign(message: string, privateKey: string): Promise<string>;
-    signMessageV2(message: string, privateKey: string): Promise<string>;
-  };
-  transactionBuilder: {
-    triggerSmartContract(
-      contractAddress: string,
-      functionSelector: string,
-      options: Record<string, unknown>,
-      parameters: unknown[],
-      issuerAddress: string
-    ): Promise<{ transaction: unknown; result: { result: boolean } }>;
-  };
-  contract(): {
-    at(address: string): Promise<unknown>;
-  };
-}
+/** ERC20 function selectors */
+const ERC20_ALLOWANCE_SELECTOR = 'allowance(address,address)';
+const ERC20_APPROVE_SELECTOR = 'approve(address,uint256)';
 
 /**
- * TRON client signer implementation
+ * TRON client signer implementation using TronWeb's signTypedData
  */
 export class TronClientSigner implements ClientSigner {
-  private privateKey: string;
-  private address: string;
-  private tronWeb: TronWeb | null = null;
+  private tronWeb: TronWeb;
+  private privateKey: string | undefined;
+  private address: string; // Base58 format
+  private network: TronNetwork;
 
-  private constructor(privateKey: string, address: string) {
-    this.privateKey = privateKey;
+  private constructor(
+    tronWeb: TronWeb,
+    address: string,
+    network: TronNetwork,
+    privateKey?: string
+  ) {
+    this.tronWeb = tronWeb;
     this.address = address;
+    this.network = network;
+    this.privateKey = privateKey;
   }
 
   /**
-   * Create signer from private key
+   * Create signer from TronWeb instance (browser wallet mode)
    */
-  static fromPrivateKey(privateKey: string): TronClientSigner {
+  static fromTronWeb(tronWeb: TronWeb, network: TronNetwork = 'mainnet'): TronClientSigner {
+    const privateKey = tronWeb.defaultPrivateKey;
+    if (!privateKey) {
+      throw new Error('TronWeb instance must have a default private key or be connected to a wallet');
+    }
+    const address = tronWeb.address.fromPrivateKey(privateKey);
+    return new TronClientSigner(tronWeb, address, network);
+  }
+
+  /**
+   * Create signer with explicit private key
+   */
+  static withPrivateKey(
+    tronWeb: TronWeb,
+    privateKey: string,
+    network: TronNetwork = 'mainnet'
+  ): TronClientSigner {
     const cleanKey = privateKey.startsWith('0x') ? privateKey.slice(2) : privateKey;
-    const address = TronClientSigner.deriveAddress(cleanKey);
-    return new TronClientSigner(cleanKey, address);
-  }
-
-  /**
-   * Create signer with TronWeb instance
-   */
-  static withTronWeb(privateKey: string, tronWeb: TronWeb): TronClientSigner {
-    const signer = TronClientSigner.fromPrivateKey(privateKey);
-    signer.tronWeb = tronWeb;
-    return signer;
-  }
-
-  /**
-   * Derive TRON address from private key
-   */
-  private static deriveAddress(privateKey: string): string {
-    // This is a placeholder - actual implementation requires tronweb
-    // In production, use: TronWeb.address.fromPrivateKey(privateKey)
-    return `T${privateKey.slice(0, 33)}`;
+    const address = tronWeb.address.fromPrivateKey(cleanKey);
+    return new TronClientSigner(tronWeb, address, network, cleanKey);
   }
 
   getAddress(): string {
     return this.address;
   }
 
+  getEvmAddress(): Hex {
+    return toEvmHex(this.address);
+  }
+
   async signMessage(message: Uint8Array): Promise<string> {
-    if (!this.tronWeb) {
-      throw new Error('TronWeb instance required for signing');
-    }
     const messageHex = Array.from(message)
       .map(b => b.toString(16).padStart(2, '0'))
       .join('');
     return this.tronWeb.trx.signMessageV2(messageHex, this.privateKey);
   }
 
+  /**
+   * Sign EIP-712 typed data using TronWeb's signTypedData (TIP-712)
+   */
   async signTypedData(
     domain: Record<string, unknown>,
     types: Record<string, unknown>,
     message: Record<string, unknown>
   ): Promise<string> {
-    // EIP-712 signing for TRON
-    // TRON uses the same EIP-712 standard as EVM
-    const typedData = {
-      types: {
-        EIP712Domain: [
-          { name: 'name', type: 'string' },
-          { name: 'version', type: 'string' },
-        ],
-        ...types,
-      },
-      primaryType: 'PaymentPermit',
-      domain,
-      message,
+    // Prepare domain
+    const typedDomain: TypedDataDomain = {
+      name: domain.name as string,
+      chainId: domain.chainId as number,
+      verifyingContract: domain.verifyingContract as string,
     };
 
-    // Hash and sign the typed data
-    // In production, use proper EIP-712 hashing library
-    const dataString = JSON.stringify(typedData);
-    const encoder = new TextEncoder();
-    const dataBytes = encoder.encode(dataString);
-    
-    return this.signMessage(dataBytes);
+    // Use signTypedData (stable API) or fall back to _signTypedData (legacy)
+    const signFn = this.tronWeb.trx.signTypedData || this.tronWeb.trx._signTypedData;
+    if (!signFn) {
+      throw new Error('TronWeb does not support signTypedData. Please upgrade to TronWeb >= 5.0');
+    }
+
+    return signFn.call(
+      this.tronWeb.trx,
+      typedDomain,
+      types as Record<string, TypedDataField[]>,
+      message,
+      this.privateKey
+    );
   }
 
-  async checkAllowance(
-    token: string,
-    _amount: bigint,
-    _network: string
-  ): Promise<bigint> {
-    if (!this.tronWeb) {
-      throw new Error('TronWeb instance required for checking allowance');
-    }
+  async checkAllowance(token: string, _amount: bigint, network: string): Promise<bigint> {
+    const spender = getPaymentPermitAddress(`tron:${this.network}`);
     
-    // Call token contract's allowance function
-    // In production: contract.allowance(owner, spender).call()
-    console.log(`Checking allowance for token ${token}`);
+    try {
+      const ownerHex = toEvmHex(this.address);
+      const spenderHex = toEvmHex(spender);
+
+      const result = await this.tronWeb.transactionBuilder.triggerConstantContract(
+        token,
+        ERC20_ALLOWANCE_SELECTOR,
+        {},
+        [
+          { type: 'address', value: ownerHex },
+          { type: 'address', value: spenderHex },
+        ]
+      );
+
+      if (result.result?.result && result.constant_result?.length) {
+        return BigInt('0x' + result.constant_result[0]);
+      }
+    } catch (error) {
+      console.error(`[TronClientSigner] Failed to check allowance: ${error}`);
+    }
+
     return BigInt(0);
   }
 
@@ -142,17 +146,11 @@ export class TronClientSigner implements ClientSigner {
     }
 
     if (mode === 'interactive') {
-      // In interactive mode, would prompt user
-      throw new Error('Interactive approval not implemented');
+      throw new Error('Interactive approval not implemented - use wallet UI');
     }
 
-    // Auto mode: send approve transaction
-    if (!this.tronWeb) {
-      throw new Error('TronWeb instance required for approval');
-    }
-
-    // In production: call token.approve(spender, amount)
-    console.log(`Approving ${amount} for token ${token}`);
+    // Auto mode: would send approve transaction
+    // In production, implement actual approval logic
     return true;
   }
 }

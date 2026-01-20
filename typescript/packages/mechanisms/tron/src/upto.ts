@@ -1,5 +1,7 @@
 /**
  * UptoTronClientMechanism - TRON client mechanism for "upto" payment scheme
+ *
+ * Uses TIP-712 (TRON's EIP-712 implementation) for signing PaymentPermit.
  */
 
 import type {
@@ -10,51 +12,21 @@ import type {
   PaymentPermit,
   PaymentPermitContext,
 } from '@x402/core';
-
-/** EIP-712 domain for TRON payment permit */
-const PAYMENT_PERMIT_DOMAIN = {
-  name: 'PaymentPermit',
-  version: '1',
-};
-
-/** EIP-712 types for payment permit */
-const PAYMENT_PERMIT_TYPES = {
-  PermitMeta: [
-    { name: 'kind', type: 'uint8' },
-    { name: 'paymentId', type: 'bytes16' },
-    { name: 'nonce', type: 'uint256' },
-    { name: 'validAfter', type: 'uint256' },
-    { name: 'validBefore', type: 'uint256' },
-  ],
-  Payment: [
-    { name: 'payToken', type: 'address' },
-    { name: 'maxPayAmount', type: 'uint256' },
-    { name: 'payTo', type: 'address' },
-  ],
-  Fee: [
-    { name: 'feeTo', type: 'address' },
-    { name: 'feeAmount', type: 'uint256' },
-  ],
-  Delivery: [
-    { name: 'receiveToken', type: 'address' },
-    { name: 'miniReceiveAmount', type: 'uint256' },
-    { name: 'tokenId', type: 'uint256' },
-  ],
-  PaymentPermit: [
-    { name: 'meta', type: 'PermitMeta' },
-    { name: 'buyer', type: 'address' },
-    { name: 'caller', type: 'address' },
-    { name: 'payment', type: 'Payment' },
-    { name: 'fee', type: 'Fee' },
-    { name: 'delivery', type: 'Delivery' },
-  ],
-};
+import {
+  KIND_MAP,
+  PAYMENT_PERMIT_TYPES,
+  getChainId,
+  getPaymentPermitAddress,
+  TronAddressConverter,
+  ZERO_ADDRESSES,
+} from '@x402/core';
 
 /**
  * TRON client mechanism for "upto" payment scheme
  */
 export class UptoTronClientMechanism implements ClientMechanism {
   private signer: ClientSigner;
+  private addressConverter = new TronAddressConverter();
 
   constructor(signer: ClientSigner) {
     this.signer = signer;
@@ -75,6 +47,7 @@ export class UptoTronClientMechanism implements ClientMechanism {
     }
 
     const buyerAddress = this.signer.getAddress();
+    const zeroAddress = ZERO_ADDRESSES.evm; // Use EVM zero for signing
 
     const permit: PaymentPermit = {
       meta: {
@@ -85,23 +58,24 @@ export class UptoTronClientMechanism implements ClientMechanism {
         validBefore: context.meta.validBefore,
       },
       buyer: buyerAddress,
-      caller: requirements.extra?.fee?.feeTo || buyerAddress,
+      caller: requirements.extra?.fee?.feeTo || zeroAddress,
       payment: {
         payToken: requirements.asset,
         maxPayAmount: requirements.amount,
         payTo: requirements.payTo,
       },
       fee: {
-        feeTo: requirements.extra?.fee?.feeTo || '410000000000000000000000000000000000000000',
+        feeTo: requirements.extra?.fee?.feeTo || zeroAddress,
         feeAmount: requirements.extra?.fee?.feeAmount || '0',
       },
       delivery: {
-        receiveToken: context.delivery.receiveToken,
+        receiveToken: context.delivery.receiveToken || zeroAddress,
         miniReceiveAmount: context.delivery.miniReceiveAmount,
         tokenId: context.delivery.tokenId,
       },
     };
 
+    // Ensure allowance
     const totalAmount = BigInt(permit.payment.maxPayAmount) + BigInt(permit.fee.feeAmount);
     await this.signer.ensureAllowance(
       permit.payment.payToken,
@@ -109,10 +83,47 @@ export class UptoTronClientMechanism implements ClientMechanism {
       requirements.network
     );
 
+    // Build EIP-712 domain (no version field per contract spec)
+    const permitAddress = getPaymentPermitAddress(requirements.network);
+    const domain = {
+      name: 'PaymentPermit',
+      chainId: getChainId(requirements.network),
+      verifyingContract: this.addressConverter.toEvmFormat(permitAddress),
+    };
+
+    // Convert permit to EIP-712 compatible format:
+    // 1. kind: string -> uint8
+    // 2. All addresses: TRON Base58 -> EVM hex
+    const permitForSigning = {
+      meta: {
+        kind: KIND_MAP[permit.meta.kind],
+        paymentId: permit.meta.paymentId,
+        nonce: permit.meta.nonce,
+        validAfter: permit.meta.validAfter,
+        validBefore: permit.meta.validBefore,
+      },
+      buyer: this.addressConverter.toEvmFormat(permit.buyer),
+      caller: this.addressConverter.toEvmFormat(permit.caller),
+      payment: {
+        payToken: this.addressConverter.toEvmFormat(permit.payment.payToken),
+        maxPayAmount: permit.payment.maxPayAmount,
+        payTo: this.addressConverter.toEvmFormat(permit.payment.payTo),
+      },
+      fee: {
+        feeTo: this.addressConverter.toEvmFormat(permit.fee.feeTo),
+        feeAmount: permit.fee.feeAmount,
+      },
+      delivery: {
+        receiveToken: this.addressConverter.toEvmFormat(permit.delivery.receiveToken),
+        miniReceiveAmount: permit.delivery.miniReceiveAmount,
+        tokenId: permit.delivery.tokenId,
+      },
+    };
+
     const signature = await this.signer.signTypedData(
-      PAYMENT_PERMIT_DOMAIN,
+      domain,
       PAYMENT_PERMIT_TYPES,
-      permit as unknown as Record<string, unknown>
+      permitForSigning as unknown as Record<string, unknown>
     );
 
     return {

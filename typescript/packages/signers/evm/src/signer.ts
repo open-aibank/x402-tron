@@ -3,6 +3,7 @@
  */
 
 import type { ClientSigner } from '@x402/core';
+import { ERC20_ABI, getPaymentPermitAddress } from '@x402/core';
 
 /** Viem WalletClient type (from viem package) */
 interface WalletClient {
@@ -69,7 +70,6 @@ export class EvmClientSigner implements ClientSigner {
    */
   private static deriveAddress(privateKey: string): string {
     // Placeholder - actual implementation requires viem/ethers
-    // In production, use: privateKeyToAccount(privateKey).address
     return `0x${privateKey.slice(2, 42)}`;
   }
 
@@ -95,7 +95,7 @@ export class EvmClientSigner implements ClientSigner {
     return this.walletClient.signTypedData({
       domain,
       types,
-      primaryType: 'PaymentPermit',
+      primaryType: 'PaymentPermitDetails',
       message,
     });
   }
@@ -103,29 +103,18 @@ export class EvmClientSigner implements ClientSigner {
   async checkAllowance(
     token: string,
     _amount: bigint,
-    _network: string
+    network: string
   ): Promise<bigint> {
     if (!this.publicClient) {
       throw new Error('PublicClient required for checking allowance');
     }
 
-    const ERC20_ABI = [
-      {
-        name: 'allowance',
-        type: 'function',
-        inputs: [
-          { name: 'owner', type: 'address' },
-          { name: 'spender', type: 'address' },
-        ],
-        outputs: [{ name: '', type: 'uint256' }],
-      },
-    ];
-
+    const spender = getPaymentPermitAddress(network);
     const result = await this.publicClient.readContract({
       address: token,
       abi: ERC20_ABI,
       functionName: 'allowance',
-      args: [this.address, token], // spender should be payment_permit contract
+      args: [this.address, spender],
     });
 
     return BigInt(result as string);
@@ -151,7 +140,6 @@ export class EvmClientSigner implements ClientSigner {
     }
 
     // Auto mode: would send approve transaction
-    // In production: walletClient.writeContract({ ... approve ... })
     return true;
   }
 }
