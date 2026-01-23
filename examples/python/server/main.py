@@ -1,4 +1,6 @@
 import os
+import logging
+import time
 from pathlib import Path
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
@@ -10,6 +12,22 @@ from x402.facilitator import FacilitatorClient
 from x402.config import NetworkConfig
 
 load_dotenv(Path(__file__).parent.parent.parent.parent / ".env")
+
+# Configure detailed logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+
+# Set specific loggers to DEBUG for detailed output
+logging.getLogger("x402").setLevel(logging.DEBUG)
+logging.getLogger("x402.server").setLevel(logging.DEBUG)
+logging.getLogger("x402.fastapi").setLevel(logging.DEBUG)
+logging.getLogger("x402.utils").setLevel(logging.DEBUG)
+logging.getLogger("uvicorn.access").setLevel(logging.INFO)
+
+logger = logging.getLogger(__name__)
 
 app = FastAPI(title="X402 Server", description="Protected resource server")
 
@@ -70,21 +88,6 @@ async def protected_endpoint(request: Request):
         return {"error": "Protected image not found"}
     return FileResponse(PROTECTED_IMAGE_PATH, media_type="image/png")
 
-
-@app.get("/protected-trx")
-@x402_protected(
-    server=server,
-    price="1 TRX",  # 1 TRX = 1000000 (6 decimals)
-    network=NetworkConfig.TRON_NILE,
-    pay_to=MERCHANT_CONTRACT_ADDRESS,
-)
-async def protected_trx_endpoint(request: Request):
-    """Serve protected content with TRX payment"""
-    if not PROTECTED_IMAGE_PATH.exists():
-        return {"error": "Protected image not found"}
-    return FileResponse(PROTECTED_IMAGE_PATH, media_type="image/png")
-
-
 @app.get("/protected-delivery")
 @x402_protected(
     server=server,
@@ -107,7 +110,16 @@ if __name__ == "__main__":
     print("=" * 80)
     print(f"Host: {SERVER_HOST}")
     print(f"Port: {SERVER_PORT}")
-    print(f"Endpoint: http://{SERVER_HOST}:{SERVER_PORT}/protected")
+    print(f"Endpoints:")
+    print(f"  /protected          - Payment only (1 USDT)")
+    print(f"  /protected-with-fee - Payment with fee (2 USDT + 1 USDT fee)")
+    print(f"  /protected-delivery - Payment and delivery mode")
     print("=" * 80 + "\n")
     
-    uvicorn.run(app, host=SERVER_HOST, port=SERVER_PORT)
+    uvicorn.run(
+        app, 
+        host=SERVER_HOST, 
+        port=SERVER_PORT,
+        log_level="info",
+        access_log=True,
+    )

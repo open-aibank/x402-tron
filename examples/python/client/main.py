@@ -52,7 +52,30 @@ async def main():
             response = await client.get(RESOURCE_URL)
             print(f"\n✅ Success!")
             print(f"Status: {response.status_code}")
-            print(f"Response: {response.json()}")
+            print(f"Content-Type: {response.headers.get('content-type')}")
+            print(f"Content-Length: {len(response.content)} bytes")
+            
+            # Parse payment response if present
+            payment_response = response.headers.get('payment-response')
+            if payment_response:
+                from x402.encoding import decode_payment_payload
+                from x402.types import SettleResponse
+                settle_response = decode_payment_payload(payment_response, SettleResponse)
+                print(f"\n📋 Payment Response:")
+                print(f"  Success: {settle_response.success}")
+                print(f"  Network: {settle_response.network}")
+                print(f"  Transaction: {settle_response.transaction}")
+                if settle_response.error_reason:
+                    print(f"  Error: {settle_response.error_reason}")
+            
+            # Handle response based on content type
+            content_type = response.headers.get('content-type', '')
+            if 'application/json' in content_type:
+                print(f"\nResponse: {response.json()}")
+            elif 'image/' in content_type:
+                print(f"\n🖼️  Received image file")
+            else:
+                print(f"\nResponse (first 200 chars): {response.text[:200]}")
         except Exception as e:
             print(f"\n❌ Error: {e}")
             import traceback

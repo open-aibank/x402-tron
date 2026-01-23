@@ -143,9 +143,16 @@ class X402Server:
             requirements, config.delivery_mode
         )
 
+
         if self._facilitators:
-            fee_quote = await self._facilitators[0].fee_quote(requirements)
-            if fee_quote and requirements.extra:
+            facilitator = self._facilitators[0]
+            fee_quote = await facilitator.fee_quote(requirements)
+            if fee_quote:
+                if requirements.extra is None:
+                    from x402.types import PaymentRequirementsExtra
+                    requirements.extra = PaymentRequirementsExtra()
+                # Set facilitatorId in the fee info
+                fee_quote.fee.facilitator_id = facilitator.facilitator_id
                 requirements.extra.fee = fee_quote.fee
 
         return requirements

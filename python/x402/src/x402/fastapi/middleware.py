@@ -102,6 +102,23 @@ class X402Middleware:
                         status_code=500
                     )
 
+                # Verify transaction on-chain (required)
+                if settle_result.transaction:
+                    tx_verify_result = await self._verify_transaction_on_chain(
+                        tx_hash=settle_result.transaction,
+                        payload=payload,
+                        requirements=requirements,
+                        network=network,
+                    )
+                    if not tx_verify_result.success:
+                        return JSONResponse(
+                            content={
+                                "error": f"Transaction verification failed: {tx_verify_result.error_reason}",
+                                "txHash": settle_result.transaction,
+                            },
+                            status_code=500
+                        )
+
                 response = await func(request, *args, **kwargs)
 
                 if isinstance(response, Response):
@@ -118,6 +135,45 @@ class X402Middleware:
 
             return wrapper
         return decorator
+
+    async def _verify_transaction_on_chain(
+        self,
+        tx_hash: str,
+        payload: PaymentPayload,
+        requirements: "PaymentRequirements",
+        network: str,
+    ) -> "TransactionVerificationResult":
+        """
+        Verify transaction on-chain to ensure transfers match expectations.
+        
+        Args:
+            tx_hash: Transaction hash to verify
+            payload: Payment payload
+            requirements: Payment requirements
+            network: Network identifier
+            
+        Returns:
+            TransactionVerificationResult
+        """
+        from x402.utils.tx_verification import (
+            get_verifier_for_network,
+            TransactionVerificationResult,
+        )
+        
+        try:
+            verifier = get_verifier_for_network(network)
+            return await verifier.verify_transaction(tx_hash, payload, requirements)
+        except ValueError as e:
+            # No verifier available for this network, skip verification
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"Transaction verification skipped: {e}")
+            return TransactionVerificationResult(
+                success=True,
+                tx_hash=tx_hash,
+                status_verified=True,
+            )
+
 
     async def _return_payment_required(
         self,

@@ -164,6 +164,19 @@ class BaseUptoFacilitatorMechanism(FacilitatorMechanism):
         receipt = await self._signer.wait_for_transaction_receipt(tx_hash)
         self._logger.info(f"Transaction confirmed: {receipt}")
 
+        # Validate transaction status
+        tx_status = receipt.get('status', '').lower()
+        if tx_status == 'failed' or tx_status == '0' or tx_status == 0:
+            self._logger.error(
+                f"Transaction failed on-chain: txHash={tx_hash}, receipt={receipt}"
+            )
+            return SettleResponse(
+                success=False,
+                errorReason="transaction_failed_on_chain",
+                transaction=tx_hash,
+                network=requirements.network,
+            )
+
         return SettleResponse(
             success=True,
             transaction=tx_hash,

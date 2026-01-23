@@ -63,6 +63,7 @@ class TronFacilitatorSigner(FacilitatorSigner):
             
             from eth_account import Account
             from eth_account.messages import encode_typed_data
+            from x402.utils.address import tron_address_to_evm
 
             # Note: PaymentPermit contract uses EIP712Domain WITHOUT version field
             # Contract: keccak256("EIP712Domain(string name,uint256 chainId,address verifyingContract)")
@@ -85,15 +86,16 @@ class TronFacilitatorSigner(FacilitatorSigner):
             sig_bytes = bytes.fromhex(signature[2:] if signature.startswith("0x") else signature)
             recovered = Account.recover_message(signable, signature=sig_bytes)
 
-            logger.info(f"Signature verification: expected={address}, recovered={recovered}")
-            tron_address = self._evm_to_tron_address(recovered)
-            logger.info(f"Converted to TRON: expected_tron={address}, recovered_tron={tron_address}")
+            # Convert expected TRON address to EVM format for comparison
+            expected_evm = tron_address_to_evm(address)
             
-            return tron_address.lower() == address.lower()
+            logger.info(f"Signature verification: expected_tron={address}, expected_evm={expected_evm}, recovered={recovered}")
+            
+            return recovered.lower() == expected_evm.lower()
         except Exception as e:
             import logging
             logger = logging.getLogger(__name__)
-            logger.error(f"Signature verification error: {e}")
+            logger.error(f"Signature verification error: {e}", exc_info=True)
             return False
 
     def _evm_to_tron_address(self, evm_address: str) -> str:

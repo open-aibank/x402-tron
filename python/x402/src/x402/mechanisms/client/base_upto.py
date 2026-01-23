@@ -56,10 +56,25 @@ class BaseUptoClientMechanism(ClientMechanism):
         extensions: dict[str, Any] | None = None,
     ) -> PaymentPayload:
         """Create payment payload with EIP-712 signature"""
-        self._logger.info(
-            f"Creating payment payload: network={requirements.network}, "
-            f"amount={requirements.amount}, asset={requirements.asset}"
-        )
+        self._logger.info("=" * 60)
+        self._logger.info(f"Creating payment payload for: {resource}")
+        
+        # Log payment details
+        self._logger.info(f"[PAYMENT] Token: {requirements.asset}")
+        self._logger.info(f"[PAYMENT] From: {self._signer.get_address()}")
+        self._logger.info(f"[PAYMENT] To: {requirements.pay_to}")
+        self._logger.info(f"[PAYMENT] Amount: {requirements.amount}")
+        
+        # Log fee details
+        if requirements.extra and requirements.extra.fee:
+            fee = requirements.extra.fee
+            self._logger.info(f"[FEE] To: {fee.fee_to}")
+            self._logger.info(f"[FEE] Amount: {fee.fee_amount}")
+            total = int(requirements.amount) + int(fee.fee_amount)
+            self._logger.info(f"[TOTAL] {total} = {requirements.amount} (payment) + {fee.fee_amount} (fee)")
+        else:
+            self._logger.info(f"[FEE] None")
+            self._logger.info(f"[TOTAL] {requirements.amount}")
 
         context = extensions.get("paymentPermitContext") if extensions else None
         if context is None:
@@ -73,7 +88,8 @@ class BaseUptoClientMechanism(ClientMechanism):
         self._logger.info("Signing payment permit with EIP-712...")
         signature = await self._sign_permit(permit, requirements.network)
 
-        self._logger.info(f"Payment payload created successfully: signature={signature[:10]}...")
+        self._logger.info(f"Payment payload created successfully")
+        self._logger.info("=" * 60)
         return PaymentPayload(
             x402Version=2,
             resource=ResourceInfo(url=resource),

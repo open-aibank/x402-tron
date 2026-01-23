@@ -60,7 +60,7 @@ TRON_NETWORK = "nile"  # Hardcoded network
 # Hardcoded facilitator configuration
 FACILITATOR_HOST = "0.0.0.0"
 FACILITATOR_PORT = 8001
-BASE_FEE = 0
+BASE_FEE = 1_000_000  # 1 USDT (6 decimals)
 
 if not TRON_PRIVATE_KEY:
     raise ValueError("TRON_PRIVATE_KEY environment variable is required")
