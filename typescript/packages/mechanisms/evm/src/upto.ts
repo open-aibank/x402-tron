@@ -82,7 +82,7 @@ export class UptoEvmClientMechanism implements ClientMechanism {
 
     // Build EIP-712 domain (no version field per contract spec)
     const domain = {
-      name: 'PaymentPermit',
+      name: 'PaymentPermitDetails',
       chainId: getChainId(requirements.network),
       verifyingContract: getPaymentPermitAddress(requirements.network),
     };

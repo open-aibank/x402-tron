@@ -107,16 +107,26 @@ class TronClientSigner(ClientSigner):
                 "message": message,
             }
 
+            # Log domain and message in same format as TypeScript client
+            import json as json_module
+            # Convert bytes to hex for logging
+            message_for_log = dict(message)
+            if 'meta' in message_for_log and 'paymentId' in message_for_log['meta']:
+                pid = message_for_log['meta']['paymentId']
+                if isinstance(pid, bytes):
+                    message_for_log['meta'] = dict(message_for_log['meta'])
+                    message_for_log['meta']['paymentId'] = '0x' + pid.hex()
+            
+            logger.info(f"[SIGN] Domain: {json_module.dumps(domain)}")
+            logger.info(f"[SIGN] Message: {json_module.dumps(message_for_log)}")
+
             signable = encode_typed_data(full_message=typed_data)
-            logger.info(f"typed_data: {typed_data}")
-            logger.info(f"signable: {signable}")
             # Convert hex private key to bytes for eth_account
             private_key_bytes = bytes.fromhex(self._private_key)
-            logger.info(f"private_key_bytes: {private_key_bytes.hex()}")
             signed_message = Account.sign_message(signable, private_key_bytes)
             
             signature = signed_message.signature.hex()
-            logger.info(f"EIP-712 signature created: {signature[:10]}...")
+            logger.info(f"[SIGN] Signature: 0x{signature}")
             return signature
         except ImportError:
             logger.warning("eth_account not available, using fallback signing")

@@ -19,7 +19,7 @@ export const CHAIN_IDS: Record<string, number> = {
 export const PAYMENT_PERMIT_ADDRESSES: Record<string, string> = {
   'tron:mainnet': 'T...',  // TODO: Deploy
   'tron:shasta': 'T...',   // TODO: Deploy
-  'tron:nile': 'TCgKLk57cH8U99kfx3rmiZL5wCc3q5Wdz4',
+  'tron:nile': 'TCR6EaRtLRYjWPr7YWHqt4uL81rfevtE8p',
   // EVM addresses would be 0x format
 };
 

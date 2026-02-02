@@ -26,7 +26,7 @@ export interface TronWeb {
     fromHex(address: string): string;
   };
   trx: {
-    sign(message: string, privateKey?: string): Promise<string>;
+    sign(transaction: unknown, privateKey?: string): Promise<unknown>;
     signMessageV2(message: string, privateKey?: string): Promise<string>;
     /** TIP-712 typed data signing (stable API) */
     signTypedData(
@@ -42,6 +42,10 @@ export interface TronWeb {
       value: Record<string, unknown>,
       privateKey?: string
     ): Promise<string>;
+    /** Broadcast signed transaction */
+    sendRawTransaction(signedTransaction: unknown): Promise<{ result: boolean; txid: string }>;
+    /** Get transaction info by txid */
+    getTransactionInfo(txid: string): Promise<{ blockNumber?: number; receipt?: { result: string } }>;
   };
   transactionBuilder: {
     triggerSmartContract(

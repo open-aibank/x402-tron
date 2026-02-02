@@ -74,11 +74,20 @@ class TronFacilitatorSigner(FacilitatorSigner):
 
             primary_type = PAYMENT_PERMIT_PRIMARY_TYPE
             
+            # Convert paymentId from hex string to bytes for eth_account compatibility
+            # TronWeb signs with hex strings, but eth_account expects bytes for bytes16
+            message_copy = dict(message)
+            if 'meta' in message_copy and 'paymentId' in message_copy['meta']:
+                payment_id = message_copy['meta']['paymentId']
+                if isinstance(payment_id, str) and payment_id.startswith('0x'):
+                    message_copy['meta'] = dict(message_copy['meta'])
+                    message_copy['meta']['paymentId'] = bytes.fromhex(payment_id[2:])
+            
             typed_data = {
                 "types": full_types,
                 "primaryType": primary_type,
                 "domain": domain,
-                "message": message,
+                "message": message_copy,
             }
 
             signable = encode_typed_data(full_message=typed_data)

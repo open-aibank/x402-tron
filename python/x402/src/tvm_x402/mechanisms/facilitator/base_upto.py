@@ -233,6 +233,21 @@ class BaseUptoFacilitatorMechanism(FacilitatorMechanism):
         message = convert_permit_to_eip712_message(permit)
         message = converter.convert_message_addresses(message)
 
+        # Debug: log exact message being verified
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"[VERIFY] Domain: name=PaymentPermit, chainId={chain_id}, verifyingContract={converter.to_evm_format(permit_address)}")
+        # Log paymentId as hex for comparison with TypeScript
+        msg_copy = dict(message)
+        if 'meta' in msg_copy and 'paymentId' in msg_copy['meta']:
+            pid = msg_copy['meta']['paymentId']
+            if isinstance(pid, bytes):
+                msg_copy['meta'] = dict(msg_copy['meta'])
+                msg_copy['meta']['paymentId'] = '0x' + pid.hex()
+        logger.info(f"[VERIFY] Message: {msg_copy}")
+        logger.info(f"[VERIFY] Signature: {signature}")
+        logger.info(f"[VERIFY] Buyer address: {permit.buyer}")
+
         return await self._signer.verify_typed_data(
             address=permit.buyer,
             domain={

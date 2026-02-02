@@ -160,10 +160,15 @@ async def verify(request: VerifyRequest):
     Returns:
         Verification result
     """
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.info(f"[VERIFY REQUEST] Payload: {request.paymentPayload.model_dump(by_alias=True)}")
     try:
         result = await facilitator_mechanism.verify(request.paymentPayload, request.paymentRequirements)
+        logger.info(f"[VERIFY RESULT] {result.model_dump(by_alias=True)}")
         return result
     except Exception as e:
+        logger.error(f"[VERIFY ERROR] {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 

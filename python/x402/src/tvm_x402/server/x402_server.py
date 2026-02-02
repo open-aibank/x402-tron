@@ -194,7 +194,7 @@ class X402Server:
                     validBefore=valid_before or (now + 3600),
                 ),
                 delivery=PaymentPermitContextDelivery(
-                    receiveToken="T0000000000000000000000000000000",
+                    receiveToken="T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb",  # TRON zero address
                     miniReceiveAmount="0",
                     tokenId="0",
                 ),

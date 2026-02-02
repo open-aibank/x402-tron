@@ -94,3 +94,23 @@ export function bytesToHex(bytes: Uint8Array, prefix = true): string {
     .join('');
   return prefix ? `0x${hex}` : hex;
 }
+
+/**
+ * Convert payment ID from hex string to bytes16 for EIP-712 signing
+ * 
+ * @param paymentId - Hex string with 0x prefix (e.g., "0x1234...abcd")
+ * @returns 16-byte Uint8Array
+ * @throws Error if format is invalid
+ */
+export function paymentIdToBytes(paymentId: string): Uint8Array {
+  if (!paymentId.startsWith('0x')) {
+    throw new Error(`Invalid payment ID format: ${paymentId}. Expected hex string with 0x prefix`);
+  }
+  
+  const paymentIdHex = paymentId.slice(2);
+  if (paymentIdHex.length !== 32) {
+    throw new Error(`Invalid payment ID length: ${paymentIdHex.length}. Expected 32 hex characters (16 bytes)`);
+  }
+  
+  return hexToBytes(paymentId);
+}

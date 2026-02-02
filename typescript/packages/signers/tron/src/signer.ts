@@ -143,6 +143,7 @@ export class TronClientSigner implements ClientSigner {
 
     const currentAllowance = await this.checkAllowance(token, amount, network);
     if (currentAllowance >= amount) {
+      console.log(`[ALLOWANCE] Sufficient allowance: ${currentAllowance} >= ${amount}`);
       return true;
     }
 
@@ -150,8 +151,67 @@ export class TronClientSigner implements ClientSigner {
       throw new Error('Interactive approval not implemented - use wallet UI');
     }
 
-    // Auto mode: would send approve transaction
-    // In production, implement actual approval logic
-    return true;
+    // Auto mode: send approve transaction
+    console.log(`[ALLOWANCE] Insufficient allowance: ${currentAllowance} < ${amount}, sending approve...`);
+    
+    const spender = getPaymentPermitAddress(`tron:${this.network}`);
+    const spenderHex = toEvmHex(spender);
+    
+    try {
+      // Build approve transaction
+      const tx = await this.tronWeb.transactionBuilder.triggerSmartContract(
+        token,
+        ERC20_APPROVE_SELECTOR,
+        {
+          feeLimit: 100_000_000,
+          callValue: 0,
+        },
+        [
+          { type: 'address', value: spenderHex },
+          { type: 'uint256', value: amount.toString() },
+        ],
+        this.address
+      );
+
+      if (!tx.result?.result) {
+        console.error('[ALLOWANCE] Failed to build approve transaction');
+        return false;
+      }
+
+      // Sign transaction
+      const signedTx = await this.tronWeb.trx.sign(tx.transaction, this.privateKey);
+
+      // Broadcast transaction
+      const broadcast = await this.tronWeb.trx.sendRawTransaction(signedTx);
+      
+      if (!broadcast.result) {
+        console.error('[ALLOWANCE] Failed to broadcast approve transaction:', broadcast);
+        return false;
+      }
+
+      console.log(`[ALLOWANCE] Approve transaction sent: ${broadcast.txid}`);
+      
+      // Wait for confirmation (poll for ~30 seconds)
+      const txid = broadcast.txid;
+      for (let i = 0; i < 10; i++) {
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        try {
+          const info = await this.tronWeb.trx.getTransactionInfo(txid);
+          if (info && info.blockNumber) {
+            const success = info.receipt?.result === 'SUCCESS';
+            console.log(`[ALLOWANCE] Approve confirmed: ${success ? 'SUCCESS' : 'FAILED'}`);
+            return success;
+          }
+        } catch {
+          // Not confirmed yet, continue polling
+        }
+      }
+
+      console.log('[ALLOWANCE] Approve transaction not confirmed within timeout, assuming success');
+      return true;
+    } catch (error) {
+      console.error('[ALLOWANCE] Approve transaction failed:', error);
+      return false;
+    }
   }
 }

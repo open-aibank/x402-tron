@@ -1,6 +1,6 @@
 {
   "name": "@tvm-x402/mechanism-tron",
-  "version": "0.1.0-beta.0",
+  "version": "0.1.0-beta.3",
   "description": "x402 TRON Client Mechanism",
   "main": "./dist/index.js",
   "module": "./dist/index.js",

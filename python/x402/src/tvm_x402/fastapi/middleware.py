@@ -80,9 +80,13 @@ class X402Middleware:
 
                 try:
                     payload = decode_payment_payload(payment_header, PaymentPayload)
-                except Exception:
+                except Exception as e:
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.error(f"Failed to decode payment payload: {e}", exc_info=True)
+                    logger.error(f"Payment header content (first 200 chars): {payment_header[:200]}")
                     return JSONResponse(
-                        content={"error": "Invalid payment payload"},
+                        content={"error": f"Invalid payment payload: {str(e)}"},
                         status_code=400
                     )
 
@@ -90,6 +94,11 @@ class X402Middleware:
 
                 verify_result = await self._server.verify_payment(payload, requirements)
                 if not verify_result.is_valid:
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.error(f"Payment verification failed: {verify_result.invalid_reason}")
+                    logger.error(f"Payload details: {payload.model_dump(by_alias=True)}")
+                    logger.error(f"Requirements: {requirements.model_dump(by_alias=True)}")
                     return JSONResponse(
                         content={"error": f"Verification failed: {verify_result.invalid_reason}"},
                         status_code=400
@@ -97,6 +106,10 @@ class X402Middleware:
 
                 settle_result = await self._server.settle_payment(payload, requirements)
                 if not settle_result.success:
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.error(f"Payment settlement failed: {settle_result.error_reason}")
+                    logger.error(f"Settlement result: {settle_result.model_dump(by_alias=True)}")
                     return JSONResponse(
                         content={"error": f"Settlement failed: {settle_result.error_reason}"},
                         status_code=500
