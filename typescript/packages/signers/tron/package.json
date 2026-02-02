@@ -1,6 +1,6 @@
 {
   "name": "@tvm-x402/signer-tron",
-  "version": "0.1.0",
+  "version": "0.1.0-beta.0",
   "description": "x402 TRON Client Signer",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -26,6 +26,9 @@
   },
   "peerDependencies": {
     "tronweb": "^5.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "license": "MIT"
 }

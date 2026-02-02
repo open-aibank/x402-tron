@@ -1,6 +1,6 @@
 {
   "name": "@tvm-x402/core",
-  "version": "0.1.0",
+  "version": "0.1.0-beta.0",
   "description": "x402 Core Client SDK",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -33,5 +33,8 @@
     "payment",
     "blockchain"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "license": "MIT"
 }
