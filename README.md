@@ -8,13 +8,13 @@ from x402.server import X402Server
 from x402.mechanisms.server import UptoTronServerMechanism
 
 server = X402Server()
-server.register_mechanism("tron:nile", UptoTronServerMechanism())
+server.register_mechanism("tron:3448148188", UptoTronServerMechanism())  # nile
 
 @app.get("/weather")
 @server.protect(
     accepts=[{
         "scheme": "upto",
-        "network": "tron:nile",
+        "network": "tron:3448148188",  # nile (CAIP-2 format)
         "amount": "1000000",  # 1 USDT
         "asset": "TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf",
         "payTo": "TDhj8uX7SVJwvhCUrMaiQHqPgrB6wRb3eG"
@@ -23,6 +23,19 @@ server.register_mechanism("tron:nile", UptoTronServerMechanism())
 async def get_weather():
     return {"temperature": 72, "condition": "sunny"}
 ```
+
+## Configuration
+
+### Network Configuration
+
+The default TRON network can be configured via the `X402_TRON_NETWORK` environment variable:
+
+```bash
+# Set in .env file or export
+X402_TRON_NETWORK=nile  # Options: mainnet, shasta, nile, or CAIP-2 format (tron:3448148188)
+```
+
+All Python examples, tests, and e2e tests will use this centralized configuration. If not set, defaults to `nile`.
 
 ## Installation
 
@@ -69,7 +82,7 @@ app = FastAPI()
 
 # Initialize x402 server
 server = X402Server()
-server.register_mechanism("tron:nile", UptoTronServerMechanism())
+server.register_mechanism("tron:3448148188", UptoTronServerMechanism())  # nile
 server.set_facilitator_client(FacilitatorClient("http://localhost:8001"))
 
 # Protect your endpoint
@@ -77,7 +90,7 @@ server.set_facilitator_client(FacilitatorClient("http://localhost:8001"))
 @server.protect(
     accepts=[{
         "scheme": "upto",
-        "network": "tron:nile",
+        "network": "tron:3448148188",  # nile (CAIP-2 format)
         "amount": "1000000",
         "asset": "TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf",
         "payTo": "YOUR_TRON_ADDRESS"
@@ -134,7 +147,7 @@ facilitator = X402Facilitator()
 signer = TronFacilitatorSigner(private_key="YOUR_PRIVATE_KEY")
 mechanism = UptoTronFacilitatorMechanism(signer=signer)
 
-facilitator.register_mechanism("tron:nile", mechanism)
+facilitator.register_mechanism("tron:3448148188", mechanism)  # nile
 
 # Mount facilitator endpoints
 app.include_router(facilitator.create_router(), prefix="")
@@ -179,9 +192,9 @@ sequenceDiagram
 
 ## Supported Networks
 
-- **TRON Mainnet** (`tron:mainnet`)
-- **TRON Shasta Testnet** (`tron:shasta`)
-- **TRON Nile Testnet** (`tron:nile`)
+- **TRON Mainnet** - `tron:728126428` (CAIP-2 format)
+- **TRON Shasta Testnet** - `tron:2494104990` (CAIP-2 format)
+- **TRON Nile Testnet** - `tron:3448148188` (CAIP-2 format)
 
 ## Supported Schemes
 

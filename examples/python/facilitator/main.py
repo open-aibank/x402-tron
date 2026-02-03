@@ -20,6 +20,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent / "python" / "
 from x402.logging_config import setup_logging
 from x402.mechanisms.facilitator import UptoTronFacilitatorMechanism
 from x402.signers.facilitator import TronFacilitatorSigner
+from x402.config import NetworkConfig
 from x402.types import (
     PaymentPayload,
     PaymentRequirements,
@@ -56,7 +57,8 @@ load_dotenv(Path(__file__).parent.parent.parent.parent / ".env")
 
 # Configuration
 TRON_PRIVATE_KEY = os.getenv("TRON_PRIVATE_KEY", "")
-TRON_NETWORK = "nile"  # Hardcoded network
+TRON_NETWORK_FULL = NetworkConfig.TRON_NILE
+TRON_NETWORK = "nile"  # Network name for signer
 # Hardcoded facilitator configuration
 FACILITATOR_HOST = "0.0.0.0"
 FACILITATOR_PORT = 8001
@@ -121,7 +123,7 @@ async def supported():
             SupportedKind(
                 x402Version=1,
                 scheme="exact",
-                network=f"tron:{TRON_NETWORK}"
+                network=TRON_NETWORK_FULL  # From centralized config
             ),
         ],
         fee=SupportedFee(

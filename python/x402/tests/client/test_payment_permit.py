@@ -22,9 +22,10 @@ def mock_signer():
 
 @pytest.fixture
 def nile_requirements():
+    from x402.config import NetworkConfig
     return PaymentRequirements(
         scheme="exact",
-        network="tron:nile",
+        network=NetworkConfig.TRON_NILE,
         amount="1000000",
         asset="TTestUSDTAddress",
         payTo="TTestMerchantAddress",
@@ -75,7 +76,8 @@ class TestClientAuthorization:
         call_args = mock_signer.ensure_allowance.call_args
         assert call_args[0][0] == nile_requirements.asset  # token
         assert call_args[0][1] == 1010000  # amount + fee
-        assert call_args[0][2] == "tron:nile"  # network
+        from x402.config import NetworkConfig
+        assert call_args[0][2] == NetworkConfig.TRON_NILE
 
     def test_allowance_amount_includes_fee(self, mock_signer, nile_requirements, permit_context):
         """测试授权金额包含费用"""

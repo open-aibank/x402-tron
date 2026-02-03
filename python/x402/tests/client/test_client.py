@@ -5,6 +5,7 @@ X402Client 测试
 import pytest
 from x402.clients import X402Client
 from x402.types import PaymentRequirements
+from x402.config import NetworkConfig
 
 
 class MockClientMechanism:
@@ -28,7 +29,7 @@ def test_client_register_mechanism():
     client = X402Client()
     mechanism = MockClientMechanism()
 
-    result = client.register("tron:shasta", mechanism)
+    result = client.register(NetworkConfig.TRON_SHASTA, mechanism)
     assert result is client  # 应该返回 self 以支持链式调用
 
 
@@ -55,7 +56,7 @@ def test_client_select_payment_requirements():
 
     # 默认应该选择第一个
     selected = client.select_payment_requirements(accepts)
-    assert selected.network in ["tron:shasta", "eip155:8453"]
+    assert selected.network in [NetworkConfig.TRON_SHASTA, "eip155:8453"]
 
 
 def test_client_select_with_tron_filter():
@@ -65,7 +66,7 @@ def test_client_select_with_tron_filter():
     accepts = [
         PaymentRequirements(
             scheme="exact",
-            network="tron:shasta",
+            network=NetworkConfig.TRON_SHASTA,
             amount="1000000",
             asset="TTestUSDT",
             payTo="TTestMerchant",
@@ -73,7 +74,7 @@ def test_client_select_with_tron_filter():
         PaymentRequirements(
             scheme="exact",
             network="eip155:8453",
-            amount="1000000",
+            amount="2000000",
             asset="0xTestUSDC",
             payTo="0xTestMerchant",
         ),
@@ -81,9 +82,9 @@ def test_client_select_with_tron_filter():
 
     # 过滤 TRON 网络
     selected = client.select_payment_requirements(
-        accepts, filters={"network": "tron:shasta"}
+        accepts, filters={"network": NetworkConfig.TRON_SHASTA}
     )
-    assert selected.network == "tron:shasta"
+    assert selected.network == NetworkConfig.TRON_SHASTA
 
 
 def test_client_select_with_evm_filter():
@@ -93,7 +94,7 @@ def test_client_select_with_evm_filter():
     accepts = [
         PaymentRequirements(
             scheme="exact",
-            network="tron:shasta",
+            network=NetworkConfig.TRON_SHASTA,
             amount="1000000",
             asset="TTestUSDT",
             payTo="TTestMerchant",
@@ -119,11 +120,11 @@ async def test_client_create_payment_payload():
     """测试创建支付载荷"""
     client = X402Client()
     mechanism = MockClientMechanism()
-    client.register("tron:shasta", mechanism)
+    client.register(NetworkConfig.TRON_SHASTA, mechanism)
 
     requirements = PaymentRequirements(
         scheme="exact",
-        network="tron:shasta",
+        network=NetworkConfig.TRON_SHASTA,
         amount="1000000",
         asset="TTestUSDT",
         payTo="TTestMerchant",

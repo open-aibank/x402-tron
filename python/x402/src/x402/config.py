@@ -3,29 +3,30 @@ X402 Network Configuration
 Centralized configuration for contract addresses and network settings
 """
 
+import os
 from typing import Dict
 
 
 class NetworkConfig:
     """Network configuration for contract addresses and chain IDs"""
 
-    # Default networks
-    TRON_MAINNET = "tron:mainnet"
-    TRON_SHASTA = "tron:shasta"
-    TRON_NILE = "tron:nile"
+    # Default networks (CAIP-2 format)
+    TRON_MAINNET = "tron:728126428"   # 0x2b6653dc
+    TRON_SHASTA = "tron:2494104990"   # 0x94a9059e
+    TRON_NILE = "tron:3448148188"     # 0xcd8690dc
 
     # TRON Chain IDs
     CHAIN_IDS: Dict[str, int] = {
-        "tron:mainnet": 728126428,   # 0x2b6653dc
-        "tron:shasta": 2494104990,   # 0x94a9059e
-        "tron:nile": 3448148188,     # 0xcd8690dc
+        "tron:728126428": 728126428,   # mainnet
+        "tron:2494104990": 2494104990,   # shasta
+        "tron:3448148188": 3448148188,     # nile
     }
 
     # PaymentPermit contract addresses
     PAYMENT_PERMIT_ADDRESSES: Dict[str, str] = {
-        "tron:mainnet": "T...",  # TODO: Deploy and fill
-        "tron:shasta": "T...",
-        "tron:nile": "TCR6EaRtLRYjWPr7YWHqt4uL81rfevtE8p",
+        "tron:728126428": "T...",  # TODO: Deploy and fill (mainnet)
+        "tron:2494104990": "T...",  # TODO: Deploy and fill (shasta)
+        "tron:3448148188": "TCR6EaRtLRYjWPr7YWHqt4uL81rfevtE8p",  # nile
     }
 
     @classmethod
@@ -33,7 +34,7 @@ class NetworkConfig:
         """Get chain ID for network
         
         Args:
-            network: Network identifier (e.g., "tron:nile", "tron:mainnet")
+            network: Network identifier (e.g., "tron:3448148188", "tron:728126428")
             
         Returns:
             Chain ID as integer
@@ -51,7 +52,7 @@ class NetworkConfig:
         """Get PaymentPermit contract address for network
         
         Args:
-            network: Network identifier (e.g., "tron:nile", "tron:mainnet")
+            network: Network identifier (e.g., "tron:3448148188", "tron:728126428")
             
         Returns:
             Contract address in Base58 format

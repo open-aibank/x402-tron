@@ -37,9 +37,10 @@ def mock_signer():
 
 @pytest.fixture
 def nile_requirements():
+    from x402.config import NetworkConfig
     return PaymentRequirements(
         scheme="exact",
-        network="tron:nile",
+        network=NetworkConfig.TRON_NILE,
         amount="1000000",
         asset="TTestUSDTAddress",
         payTo="TTestMerchantAddress",
@@ -94,7 +95,8 @@ class TestFacilitatorSettle:
 
         assert result.success is True
         assert result.transaction == "txhash123456"
-        assert result.network == "tron:nile"
+        from x402.config import NetworkConfig
+        assert result.network == NetworkConfig.TRON_NILE
         mock_signer.write_contract.assert_called_once()
 
     def test_settle_calls_permit_transfer_from(self, mock_signer, valid_payload, nile_requirements):

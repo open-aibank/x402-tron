@@ -5,17 +5,17 @@
 
 /** Chain IDs for supported networks */
 export const CHAIN_IDS: Record<string, number> = {
-  // TRON networks
-  'tron:mainnet': 728126428,   // 0x2b6653dc
-  'tron:shasta': 2494104990,   // 0x94a9059e
-  'tron:nile': 3448148188,     // 0xcd8690dc
+  // TRON networks (CAIP-2 format)
+  'tron:728126428': 728126428,   // mainnet (0x2b6653dc)
+  'tron:2494104990': 2494104990,   // shasta (0x94a9059e)
+  'tron:3448148188': 3448148188,     // nile (0xcd8690dc)
 };
 
 /** PaymentPermit contract addresses */
 export const PAYMENT_PERMIT_ADDRESSES: Record<string, string> = {
-  'tron:mainnet': 'T...',  // TODO: Deploy
-  'tron:shasta': 'T...',   // TODO: Deploy
-  'tron:nile': 'TCR6EaRtLRYjWPr7YWHqt4uL81rfevtE8p',
+  'tron:728126428': 'T...',  // TODO: Deploy (mainnet)
+  'tron:2494104990': 'T...',   // TODO: Deploy (shasta)
+  'tron:3448148188': 'TCR6EaRtLRYjWPr7YWHqt4uL81rfevtE8p',  // nile
 };
 
 /** Zero address for TRON */

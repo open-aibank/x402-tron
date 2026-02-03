@@ -2,37 +2,29 @@
 
 TypeScript Client SDK for x402 Payment Protocol.
 
-## Packages
+## Package
 
-- `@x402/core` - Core client SDK with types and utilities
-- `@x402/mechanism-tron` - TRON client mechanism
-- `@x402/mechanism-evm` - EVM client mechanism
-- `@x402/signer-tron` - TRON client signer
-- `@x402/signer-evm` - EVM client signer
-- `@x402/http-fetch` - Fetch-based HTTP client adapter
+- `@open-aibank/x402-tron` - Complete TypeScript SDK for x402 on TRON (includes client, HTTP adapter, mechanisms, and signers)
 
 ## Installation
 
 ```bash
-# Install core package
-pnpm add @x402/core
+# Install the package
+npm install @open-aibank/x402-tron
 
-# Install chain-specific packages
-pnpm add @x402/mechanism-tron @x402/signer-tron
-# or
-pnpm add @x402/mechanism-evm @x402/signer-evm
-
-# Install HTTP adapter
-pnpm add @x402/http-fetch
+# Peer dependency
+npm install tronweb
 ```
 
 ## Quick Start
 
 ```typescript
-import { X402Client } from '@x402/core';
-import { UptoTronClientMechanism } from '@x402/mechanism-tron';
-import { TronClientSigner } from '@x402/signer-tron';
-import { X402FetchClient } from '@x402/http-fetch';
+import { 
+  X402Client,
+  X402FetchClient,
+  UptoTronClientMechanism,
+  TronClientSigner
+} from '@open-aibank/x402-tron';
 
 // 1. Create signer
 const signer = TronClientSigner.fromPrivateKey('your_private_key');

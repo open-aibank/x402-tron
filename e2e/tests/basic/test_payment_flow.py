@@ -146,6 +146,8 @@ class TestFullPaymentFlow:
 
         if settle_result.get("success"):
             print(f"Settlement tx: {settle_result.get('transaction')}")
-            assert settle_result["network"] == "tron:nile"
+            # Verify network matches configured network
+            from x402.config import NetworkConfig
+            assert settle_result["network"] == NetworkConfig.TRON_NILE
         else:
             print(f"Settlement failed: {settle_result.get('errorReason')}")

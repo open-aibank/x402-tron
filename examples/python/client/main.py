@@ -9,6 +9,7 @@ import logging
 from x402.clients import X402Client, X402HttpClient
 from x402.mechanisms.client import UptoTronClientMechanism
 from x402.signers.client import TronClientSigner
+from x402.config import NetworkConfig
 
 # Enable detailed logging
 logging.basicConfig(
@@ -19,8 +20,7 @@ logging.basicConfig(
 load_dotenv(Path(__file__).parent.parent.parent.parent / ".env")
 
 TRON_PRIVATE_KEY = os.getenv("TRON_PRIVATE_KEY", "")
-# Hardcoded network configuration
-TRON_NETWORK = "tron:nile"
+TRON_NETWORK = NetworkConfig.TRON_NILE
 # Hardcoded server configuration
 RESOURCE_SERVER_URL = "http://localhost:8000"
 ENDPOINT_PATH = "/protected"
