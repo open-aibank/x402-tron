@@ -1,6 +1,6 @@
 {
   "name": "@open-aibank/x402-tron",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "x402-tron TypeScript SDK (TRON-only)",
   "keywords": [
     "x402",
