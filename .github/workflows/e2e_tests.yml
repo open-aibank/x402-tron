@@ -1,0 +1,50 @@
+name: E2E Tests
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  e2e-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda
+        with:
+          run_install: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+          cache-dependency-path: ./typescript
+
+      - name: Install Python dependencies
+        working-directory: ./e2e
+        run: uv sync
+
+      - name: Install TypeScript dependencies
+        working-directory: ./typescript
+        run: pnpm install --frozen-lockfile
+
+      - name: Build TypeScript packages
+        working-directory: ./typescript
+        run: pnpm build
+
+      - name: Run E2E tests
+        working-directory: ./e2e
+        run: uv run pytest -v
+        env:
+          PYTHONPATH: ${{ github.workspace }}

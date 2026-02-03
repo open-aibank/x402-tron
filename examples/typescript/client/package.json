@@ -9,10 +9,7 @@
     "dev": "tsx watch src/main.ts"
   },
   "dependencies": {
-    "@tvm-x402/core": "workspace:*",
-    "@tvm-x402/http-fetch": "workspace:*",
-    "@tvm-x402/mechanism-tron": "workspace:*",
-    "@tvm-x402/signer-tron": "workspace:*",
+    "@sun-protocol/tvm-x402": "workspace:*",
     "dotenv": "^16.3.1",
     "tronweb": "^6.0.0"
   },

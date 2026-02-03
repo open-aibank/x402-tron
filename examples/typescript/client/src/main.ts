@@ -8,11 +8,13 @@ import { randomUUID } from 'crypto';
 
 import { TronWeb } from 'tronweb';
 
-import { X402Client } from '@tvm-x402/core';
-import { X402FetchClient } from '@tvm-x402/http-fetch';
-import { UptoTronClientMechanism } from '@tvm-x402/mechanism-tron';
-import { TronClientSigner } from '@tvm-x402/signer-tron';
-import type { SettleResponse } from '@tvm-x402/core';
+import {
+  X402Client,
+  X402FetchClient,
+  UptoTronClientMechanism,
+  TronClientSigner,
+  type SettleResponse,
+} from '@sun-protocol/tvm-x402';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);

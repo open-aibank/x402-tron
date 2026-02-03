@@ -1,0 +1,67 @@
+name: Publish to NPM
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'NPM tag (latest, beta, alpha)'
+        required: false
+        default: 'beta'
+        type: choice
+        options:
+          - latest
+          - beta
+          - alpha
+
+jobs:
+  publish-npm:
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref == 'refs/heads/main' && 'npm' || '' }}
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup pnpm
+        uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061
+        with:
+          version: 8.0.0
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          registry-url: "https://registry.npmjs.org"
+          cache: "pnpm"
+          cache-dependency-path: ./typescript
+      
+      - name: Update npm for OIDC trusted publishing
+        run: npm install -g npm@latest
+      
+      - name: Configure npm for trusted publishing
+        run: npm config delete always-auth 2>/dev/null || true
+      
+      - name: Install and build
+        working-directory: ./typescript
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm -r build
+      
+      - name: Publish @sun-protocol/tvm-x402 package
+        working-directory: ./typescript/packages/x402
+        env:
+          NPM_TAG: ${{ inputs.tag || 'beta' }}
+        run: |
+          PACKAGE_NAME=$(node -p "require('./package.json').name")
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          
+          echo "Package: $PACKAGE_NAME@$PACKAGE_VERSION"
+          echo "Tag: $NPM_TAG"
+          
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "Publishing to NPM (main branch)"
+            pnpm publish --provenance --access public --tag $NPM_TAG
+          else
+            echo "Dry run only (non-main branch: ${{ github.ref }})"
+            pnpm publish --dry-run --no-git-checks --tag $NPM_TAG
+          fi

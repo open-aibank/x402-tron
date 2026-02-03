@@ -1,7 +1,3 @@
 packages:
-  - 'packages/core'
-  - 'packages/mechanisms/*'
-  - 'packages/signers/*'
-  - 'packages/http/*'
-  - 'packages/tools'
+  - 'packages/x402'
   - '../examples/typescript/client'

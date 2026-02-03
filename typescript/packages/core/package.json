@@ -2,6 +2,18 @@
   "name": "@tvm-x402/core",
   "version": "0.1.0-beta.1",
   "description": "x402 Core Client SDK",
+  "homepage": "https://github.com/sun-protocol/tvm-x402#readme",
+  "bugs": {
+    "url": "https://github.com/sun-protocol/tvm-x402/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sun-protocol/tvm-x402.git",
+    "directory": "typescript/packages/core"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
