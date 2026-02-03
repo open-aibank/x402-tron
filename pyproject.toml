@@ -1,10 +1,56 @@
+[build-system]
+requires = ["hatchling>=1.18.0"]
+build-backend = "hatchling.build"
+
 [project]
-name = "x402-workspace"
-version = "0.1.0"
-description = "x402 Payment Protocol Workspace"
-authors = [{ name = "x402", email = "dev@x402.io" }]
+name = "x402-tron"
+version = "0.1.1"
+description = "x402 Payment Protocol SDK for Python"
+readme = "python/x402/README.md"
+license = {text = "MIT"}
 requires-python = ">=3.10"
-dependencies = []
+authors = [
+    { name = "x402", email = "dev@x402.io" }
+]
+keywords = ["x402", "payment", "blockchain", "tron"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+    "httpx>=0.25.0",
+    "pydantic>=2.0.0",
+]
+
+[project.optional-dependencies]
+tron = ["tronpy>=0.4.0"]
+fastapi = ["fastapi>=0.100.0"]
+flask = ["flask>=2.0.0"]
+all = [
+    "tronpy>=0.4.0",
+    "fastapi>=0.100.0",
+    "flask>=2.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/open-aibank/x402-tron"
+Documentation = "https://github.com/open-aibank/x402-tron#readme"
+Repository = "https://github.com/open-aibank/x402-tron"
+
+[tool.hatch.build.targets.wheel]
+packages = ["python/x402/src/x402"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "python/x402/src/",
+    "python/x402/README.md",
+]
 
 [tool.uv]
 dev-dependencies = [
