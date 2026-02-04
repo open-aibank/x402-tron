@@ -23,7 +23,7 @@ class NetworkConfig:
 
     # PaymentPermit contract addresses
     PAYMENT_PERMIT_ADDRESSES: Dict[str, str] = {
-        "tron:mainnet": "TDKRCJgbrsKfxSc2SW8cCvM8c7cFPsjyXT",
+        "tron:mainnet": "TYWGPC53cD44MQW54tH11kNYxLW5eu5zGy",
         "tron:shasta": "TFiMDs3KeDiwcB5rRBqFHYaNHFZGxEJ89U",
         "tron:nile": "TCR6EaRtLRYjWPr7YWHqt4uL81rfevtE8p",
     }

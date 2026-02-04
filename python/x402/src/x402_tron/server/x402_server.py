@@ -18,6 +18,7 @@ from x402_tron.types import (
     SettleResponse,
     VerifyResponse,
 )
+from x402_tron.utils.eip712 import TRON_ZERO_ADDRESS
 
 if TYPE_CHECKING:
     from x402_tron.facilitator.facilitator_client import FacilitatorClient
@@ -197,7 +198,7 @@ class X402Server:
                     validBefore=valid_before or (now + 3600),
                 ),
                 delivery=PaymentPermitContextDelivery(
-                    receiveToken="T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb",  # TRON zero address
+                    receiveToken=TRON_ZERO_ADDRESS,
                     miniReceiveAmount="0",
                     tokenId="0",
                 ),
