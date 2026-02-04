@@ -37,7 +37,7 @@ const BASE58_ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvw
  */
 function toEvmHex(addr: string): `0x${string}` {
   console.log(`[toEvmHex] Input: "${addr}"`);
-  
+
   // Handle null/undefined/empty
   if (!addr) {
     console.log('[toEvmHex] Empty address, returning zero address');
@@ -56,7 +56,7 @@ function toEvmHex(addr: string): `0x${string}` {
     console.log(`[toEvmHex] Zero placeholder address: ${addr} -> zero address`);
     return '0x0000000000000000000000000000000000000000';
   }
-  
+
   // Raw hex (all hex characters, no prefix) - check this BEFORE Base58
   if (/^[0-9a-fA-F]+$/.test(addr)) {
     // If starts with 41 and is 42 chars, it's TRON hex format
@@ -260,13 +260,13 @@ export async function createPaymentPayload(
     // TRON Nile testnet chainId: 3448148188
     // TRON Mainnet chainId: 728126428
     const chainId = requirements.network.includes('nile') ? 3448148188 :
-                    requirements.network.includes('shasta') ? 2494104990 : 728126428;
+      requirements.network.includes('shasta') ? 2494104990 : 728126428;
 
     // PaymentPermit contract addresses (Base58 format)
     const PAYMENT_PERMIT_CONTRACTS: Record<string, string> = {
-      'tron:nile': 'TCR6EaRtLRYjWPr7YWHqt4uL81rfevtE8p',
+      'tron:nile': 'TUjev8a2CpUYEQzY1YSZHmQE1XTmyCTAp9',
       'tron:mainnet': 'T0000000000000000000000000000000', // TODO: Deploy
-      'tron:shasta': 'T0000000000000000000000000000000', // TODO: Deploy
+      'tron:shasta': 'TGbZhsa39ZQ3mtD8u1ZjsHDjNSH3r6Xvry',
     };
 
     const contractBase58 = PAYMENT_PERMIT_CONTRACTS[requirements.network];

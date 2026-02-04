@@ -14,8 +14,8 @@ export const CHAIN_IDS: Record<string, number> = {
 /** PaymentPermit contract addresses */
 export const PAYMENT_PERMIT_ADDRESSES: Record<string, string> = {
   'tron:mainnet': 'T...',  // TODO: Deploy
-  'tron:shasta': 'T...',   // TODO: Deploy
-  'tron:nile': 'TCR6EaRtLRYjWPr7YWHqt4uL81rfevtE8p',
+  'tron:shasta': 'TGbZhsa39ZQ3mtD8u1ZjsHDjNSH3r6Xvry',
+  'tron:nile': 'TUjev8a2CpUYEQzY1YSZHmQE1XTmyCTAp9',
 };
 
 /** Zero address for TRON */

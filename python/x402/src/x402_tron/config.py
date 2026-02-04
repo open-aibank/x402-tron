@@ -24,8 +24,8 @@ class NetworkConfig:
     # PaymentPermit contract addresses
     PAYMENT_PERMIT_ADDRESSES: Dict[str, str] = {
         "tron:mainnet": "T...",  # TODO: Deploy and fill
-        "tron:shasta": "T...",
-        "tron:nile": "TCR6EaRtLRYjWPr7YWHqt4uL81rfevtE8p",
+        "tron:shasta": "TGbZhsa39ZQ3mtD8u1ZjsHDjNSH3r6Xvry",
+        "tron:nile": "TUjev8a2CpUYEQzY1YSZHmQE1XTmyCTAp9",
     }
 
     @classmethod
