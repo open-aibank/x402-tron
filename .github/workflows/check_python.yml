@@ -23,7 +23,7 @@ jobs:
         run: uv sync --all-extras --dev
 
       - name: Run Tests
-        run: uv run python -m pytest
+        run: cd python && uv run python -m pytest && cd ../e2e/ && uv run python -m pytest
 
   lint-python:
     runs-on: ubuntu-latest
