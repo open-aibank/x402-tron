@@ -64,4 +64,4 @@ dev-dependencies = [
 x402 = { workspace = true }
 
 [tool.uv.workspace]
-members = ["python/x402", "examples/python/client", "examples/python/server"]
+members = ["python/x402_tron", "examples/python/client", "examples/python/server"]
