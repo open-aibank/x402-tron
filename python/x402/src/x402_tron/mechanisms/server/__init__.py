@@ -3,11 +3,11 @@ Server Mechanisms
 """
 
 from x402_tron.mechanisms.server.base import ServerMechanism
-from x402_tron.mechanisms.server.base_upto import BaseUptoServerMechanism
-from x402_tron.mechanisms.server.tron_upto import UptoTronServerMechanism
+from x402_tron.mechanisms.server.base_exact import BaseExactServerMechanism
+from x402_tron.mechanisms.server.tron_exact import ExactTronServerMechanism
 
 __all__ = [
     "ServerMechanism",
-    "BaseUptoServerMechanism",
-    "UptoTronServerMechanism",
+    "BaseExactServerMechanism",
+    "ExactTronServerMechanism",
 ]

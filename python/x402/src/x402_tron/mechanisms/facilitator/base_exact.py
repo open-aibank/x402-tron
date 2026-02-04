@@ -1,5 +1,5 @@
 """
-BaseUptoFacilitatorMechanism - Base class for "upto" payment scheme facilitator mechanisms.
+BaseExactFacilitatorMechanism - Base class for "exact" payment scheme facilitator mechanisms.
 
 Extracts common logic from EVM and TRON implementations.
 """
@@ -33,8 +33,8 @@ DEFAULT_BASE_FEE = 1_000_000
 FEE_QUOTE_EXPIRY_SECONDS = 300
 
 
-class BaseUptoFacilitatorMechanism(FacilitatorMechanism):
-    """Base class for upto payment scheme facilitator mechanisms.
+class BaseExactFacilitatorMechanism(FacilitatorMechanism):
+    """Base class for exact payment scheme facilitator mechanisms.
 
     Subclasses only need to implement _get_address_converter() method.
     """
@@ -91,7 +91,7 @@ class BaseUptoFacilitatorMechanism(FacilitatorMechanism):
         permit = payload.payload.payment_permit
         self._logger.info(
             f"Verifying payment: paymentId={permit.meta.payment_id}, "
-            f"buyer={permit.buyer}, amount={permit.payment.max_pay_amount}"
+            f"buyer={permit.buyer}, amount={permit.payment.pay_amount}"
         )
 
         # Validate permit matches requirements
@@ -147,7 +147,7 @@ class BaseUptoFacilitatorMechanism(FacilitatorMechanism):
         self._logger.info(f"  - buyer: {permit.buyer}")
         self._logger.info(f"  - payTo: {permit.payment.pay_to}")
         self._logger.info(f"  - payToken: {permit.payment.pay_token}")
-        self._logger.info(f"  - maxPayAmount: {permit.payment.max_pay_amount}")
+        self._logger.info(f"  - payAmount: {permit.payment.pay_amount}")
         self._logger.info(f"  - feeTo: {permit.fee.fee_to}")
         self._logger.info(f"  - feeAmount: {permit.fee.fee_amount}")
 
@@ -190,9 +190,9 @@ class BaseUptoFacilitatorMechanism(FacilitatorMechanism):
 
     def _validate_permit(self, permit: Any, requirements: PaymentRequirements) -> str | None:
         """Validate permit matches requirements, returns error reason or None"""
-        if int(permit.payment.max_pay_amount) < int(requirements.amount):
+        if int(permit.payment.pay_amount) < int(requirements.amount):
             self._logger.warning(
-                f"Amount mismatch: {permit.payment.max_pay_amount} < {requirements.amount}"
+                f"Amount mismatch: {permit.payment.pay_amount} < {requirements.amount}"
             )
             return "amount_mismatch"
 
@@ -305,7 +305,7 @@ class BaseUptoFacilitatorMechanism(FacilitatorMechanism):
             ),
             buyer,
             caller,
-            (pay_token, int(permit.payment.max_pay_amount), pay_to),
+            (pay_token, int(permit.payment.pay_amount), pay_to),
             (fee_to, int(permit.fee.fee_amount)),
             (
                 receive_token,

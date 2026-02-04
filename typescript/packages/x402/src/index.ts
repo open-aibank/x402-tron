@@ -16,7 +16,7 @@ export * from './address.js';
 export * from './http/client.js';
 
 // TRON Mechanism
-export * from './mechanisms/upto.js';
+export * from './mechanisms/exact.js';
 
 // TRON Signer
 export * from './signers/signer.js';

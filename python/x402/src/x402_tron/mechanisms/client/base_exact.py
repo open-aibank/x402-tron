@@ -1,5 +1,5 @@
 """
-BaseUptoClientMechanism - Base class for "upto" payment scheme client mechanisms.
+BaseExactClientMechanism - Base class for "exact" payment scheme client mechanisms.
 
 Extracts common logic from EVM and TRON implementations.
 """
@@ -30,8 +30,8 @@ if TYPE_CHECKING:
     from x402_tron.signers.client import ClientSigner
 
 
-class BaseUptoClientMechanism(ClientMechanism):
-    """Base class for upto payment scheme client mechanisms.
+class BaseExactClientMechanism(ClientMechanism):
+    """Base class for exact payment scheme client mechanisms.
 
     Subclasses only need to implement _get_address_converter() method.
     """
@@ -135,7 +135,7 @@ class BaseUptoClientMechanism(ClientMechanism):
             caller=caller,
             payment=Payment(
                 payToken=converter.normalize(requirements.asset),
-                maxPayAmount=requirements.amount,
+                payAmount=requirements.amount,
                 payTo=converter.normalize(requirements.pay_to),
             ),
             fee=Fee(
@@ -153,10 +153,10 @@ class BaseUptoClientMechanism(ClientMechanism):
 
     async def _ensure_allowance(self, permit: PaymentPermit, network: str) -> None:
         """Ensure token allowance is sufficient for payment + fee"""
-        total_amount = int(permit.payment.max_pay_amount) + int(permit.fee.fee_amount)
+        total_amount = int(permit.payment.pay_amount) + int(permit.fee.fee_amount)
         self._logger.info(
             f"Total amount (payment + fee): {total_amount} = "
-            f"{permit.payment.max_pay_amount} + {permit.fee.fee_amount}"
+            f"{permit.payment.pay_amount} + {permit.fee.fee_amount}"
         )
 
         await self._signer.ensure_allowance(

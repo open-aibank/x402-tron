@@ -61,7 +61,7 @@ def valid_payload(nile_requirements):
                 caller="TTestFacilitator",
                 payment=Payment(
                     payToken="TTestUSDTAddress",
-                    maxPayAmount="1000000",
+                    payAmount="1000000",
                     payTo="TTestMerchantAddress",
                 ),
                 fee=Fee(feeTo="TTestFacilitator", feeAmount="10000"),

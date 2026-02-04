@@ -1,5 +1,5 @@
 """
-BaseUptoServerMechanism - Base class for "upto" payment scheme server mechanisms.
+BaseExactServerMechanism - Base class for "exact" payment scheme server mechanisms.
 
 Extracts common logic from EVM and TRON implementations.
 """
@@ -19,8 +19,8 @@ from x402_tron.tokens import TokenRegistry
 from x402_tron.types import KIND_MAP, PaymentRequirements, PaymentRequirementsExtra
 
 
-class BaseUptoServerMechanism(ServerMechanism):
-    """Base class for upto payment scheme server mechanisms.
+class BaseExactServerMechanism(ServerMechanism):
+    """Base class for exact payment scheme server mechanisms.
 
     Subclasses only need to implement network prefix and address format validation.
     """
@@ -187,7 +187,7 @@ class BaseUptoServerMechanism(ServerMechanism):
 
         # Convert string values to integers
         message["meta"]["nonce"] = int(message["meta"]["nonce"])
-        message["payment"]["maxPayAmount"] = int(message["payment"]["maxPayAmount"])
+        message["payment"]["payAmount"] = int(message["payment"]["payAmount"])
         message["fee"]["feeAmount"] = int(message["fee"]["feeAmount"])
         message["delivery"]["miniReceiveAmount"] = int(message["delivery"]["miniReceiveAmount"])
         message["delivery"]["tokenId"] = int(message["delivery"]["tokenId"])

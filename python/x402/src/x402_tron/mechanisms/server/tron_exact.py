@@ -1,15 +1,14 @@
 """
-UptoTronServerMechanism - TRON server mechanism for "upto" payment scheme
+ExactTronServerMechanism - "exact" 支付方案的 TRON 服务器机制
 """
 
 from typing import Any
 
-from x402_tron.mechanisms.server.base_upto import BaseUptoServerMechanism
+from x402_tron.mechanisms.server.base_exact import BaseExactServerMechanism
 from x402_tron.types import KIND_MAP
 
 
-class UptoTronServerMechanism(BaseUptoServerMechanism):
-    """TRON server mechanism for upto payment scheme"""
+class ExactTronServerMechanism(BaseExactServerMechanism):
 
     def _get_network_prefix(self) -> str:
         return "tron:"
@@ -43,7 +42,7 @@ class UptoTronServerMechanism(BaseUptoServerMechanism):
 
         # Convert string values to integers
         message["meta"]["nonce"] = int(message["meta"]["nonce"])
-        message["payment"]["maxPayAmount"] = int(message["payment"]["maxPayAmount"])
+        message["payment"]["payAmount"] = int(message["payment"]["payAmount"])
         message["fee"]["feeAmount"] = int(message["fee"]["feeAmount"])
         message["delivery"]["miniReceiveAmount"] = int(message["delivery"]["miniReceiveAmount"])
         message["delivery"]["tokenId"] = int(message["delivery"]["tokenId"])

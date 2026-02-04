@@ -34,7 +34,7 @@ class Payment(BaseModel):
     """Payment information"""
 
     pay_token: str = Field(alias="payToken")
-    max_pay_amount: str = Field(alias="maxPayAmount")
+    pay_amount: str = Field(alias="payAmount")
     pay_to: str = Field(alias="payTo")
 
     class Config:

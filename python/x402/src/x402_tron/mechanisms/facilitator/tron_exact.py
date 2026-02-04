@@ -1,5 +1,5 @@
 """
-UptoTronFacilitatorMechanism - TRON facilitator mechanism for "upto" payment scheme
+ExactTronFacilitatorMechanism - "exact" 支付方案的 TRON facilitator 机制
 """
 
 from typing import Any
@@ -7,12 +7,12 @@ from typing import Any
 from x402_tron.abi import PAYMENT_PERMIT_ABI, get_abi_json, get_payment_permit_eip712_types
 from x402_tron.address import AddressConverter, TronAddressConverter
 from x402_tron.config import NetworkConfig
-from x402_tron.mechanisms.facilitator.base_upto import BaseUptoFacilitatorMechanism
+from x402_tron.mechanisms.facilitator.base_exact import BaseExactFacilitatorMechanism
 from x402_tron.types import KIND_MAP, PaymentPermit, PaymentRequirements
 
 
-class UptoTronFacilitatorMechanism(BaseUptoFacilitatorMechanism):
-    """TRON facilitator mechanism for upto payment scheme"""
+class ExactTronFacilitatorMechanism(BaseExactFacilitatorMechanism):
+    """exact 支付方案的 TRON facilitator 机制"""
 
     def _get_address_converter(self) -> AddressConverter:
         return TronAddressConverter()
@@ -37,7 +37,7 @@ class UptoTronFacilitatorMechanism(BaseUptoFacilitatorMechanism):
 
         # Convert string values to integers for EIP-712 compatibility
         message["meta"]["nonce"] = int(message["meta"]["nonce"])
-        message["payment"]["maxPayAmount"] = int(message["payment"]["maxPayAmount"])
+        message["payment"]["payAmount"] = int(message["payment"]["payAmount"])
         message["fee"]["feeAmount"] = int(message["fee"]["feeAmount"])
         message["delivery"]["miniReceiveAmount"] = int(message["delivery"]["miniReceiveAmount"])
         message["delivery"]["tokenId"] = int(message["delivery"]["tokenId"])
@@ -85,10 +85,9 @@ class UptoTronFacilitatorMechanism(BaseUptoFacilitatorMechanism):
 
         permit_tuple = self._build_permit_tuple(permit)
         sig_bytes = bytes.fromhex(signature[2:] if signature.startswith("0x") else signature)
-        transfer_details = (int(permit.payment.max_pay_amount),)
         buyer = self._address_converter.normalize(permit.buyer)
 
-        args = [permit_tuple, transfer_details, buyer, sig_bytes]
+        args = [permit_tuple, buyer, sig_bytes]
         self._logger.info(
             f"Calling permitTransferFrom with {len(args)} arguments (PAYMENT_ONLY mode)"
         )

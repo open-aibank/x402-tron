@@ -96,9 +96,9 @@ class X402Server:
 
     def _register_default_tron_mechanisms(self) -> None:
         """Register default TRON mechanisms for all networks"""
-        from x402_tron.mechanisms.server import UptoTronServerMechanism
+        from x402_tron.mechanisms.server import ExactTronServerMechanism
 
-        tron_mechanism = UptoTronServerMechanism()
+        tron_mechanism = ExactTronServerMechanism()
         self.register(NetworkConfig.TRON_MAINNET, tron_mechanism)
         self.register(NetworkConfig.TRON_SHASTA, tron_mechanism)
         self.register(NetworkConfig.TRON_NILE, tron_mechanism)
@@ -280,7 +280,7 @@ class X402Server:
             return False
         if permit.payment.pay_to != requirements.pay_to:
             return False
-        if int(permit.payment.max_pay_amount) < int(requirements.amount):
+        if int(permit.payment.pay_amount) < int(requirements.amount):
             return False
 
         return True

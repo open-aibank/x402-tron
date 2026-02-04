@@ -59,7 +59,7 @@ def convert_permit_to_eip712_message(permit: PaymentPermit) -> dict[str, Any]:
 
     # Convert string values to integers for EIP-712 compatibility
     message["meta"]["nonce"] = int(message["meta"]["nonce"])
-    message["payment"]["maxPayAmount"] = int(message["payment"]["maxPayAmount"])
+    message["payment"]["payAmount"] = int(message["payment"]["payAmount"])
     message["fee"]["feeAmount"] = int(message["fee"]["feeAmount"])
     message["delivery"]["miniReceiveAmount"] = int(message["delivery"]["miniReceiveAmount"])
     message["delivery"]["tokenId"] = int(message["delivery"]["tokenId"])

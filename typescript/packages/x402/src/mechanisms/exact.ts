@@ -1,5 +1,5 @@
 /**
- * UptoTronClientMechanism - TRON client mechanism for "upto" payment scheme
+ * ExactTronClientMechanism - TRON client mechanism for "exact" payment scheme
  *
  * Uses TIP-712 (TRON's EIP-712 implementation) for signing PaymentPermit.
  */
@@ -23,9 +23,9 @@ import {
 } from '../index.js';
 
 /**
- * TRON client mechanism for "upto" payment scheme
+ * TRON client mechanism for "exact" payment scheme
  */
-export class UptoTronClientMechanism implements ClientMechanism {
+export class ExactTronClientMechanism implements ClientMechanism {
   private signer: ClientSigner;
   private addressConverter = new TronAddressConverter();
 
@@ -62,7 +62,7 @@ export class UptoTronClientMechanism implements ClientMechanism {
       caller: zeroAddress,  // Caller is zero address for client-initiated payments
       payment: {
         payToken: requirements.asset,
-        maxPayAmount: requirements.amount,
+        payAmount: requirements.amount,
         payTo: requirements.payTo,
       },
       fee: {
@@ -77,7 +77,7 @@ export class UptoTronClientMechanism implements ClientMechanism {
     };
 
     // Ensure allowance
-    const totalAmount = BigInt(permit.payment.maxPayAmount) + BigInt(permit.fee.feeAmount);
+    const totalAmount = BigInt(permit.payment.payAmount) + BigInt(permit.fee.feeAmount);
     await this.signer.ensureAllowance(
       permit.payment.payToken,
       totalAmount,
@@ -110,7 +110,7 @@ export class UptoTronClientMechanism implements ClientMechanism {
       caller: this.addressConverter.toEvmFormat(permit.caller),
       payment: {
         payToken: this.addressConverter.toEvmFormat(permit.payment.payToken),
-        maxPayAmount: BigInt(permit.payment.maxPayAmount),
+        payAmount: BigInt(permit.payment.payAmount),
         payTo: this.addressConverter.toEvmFormat(permit.payment.payTo),
       },
       fee: {

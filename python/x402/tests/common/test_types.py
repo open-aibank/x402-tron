@@ -22,7 +22,7 @@ def test_payment_permit_creation():
         caller="TTestCallerAddress",
         payment=Payment(
             payToken="TTestTokenAddress",
-            maxPayAmount="1000000",
+            payAmount="1000000",
             payTo="TTestPayToAddress",
         ),
         fee=Fee(feeTo="TTestFeeAddress", feeAmount="10000"),
@@ -34,7 +34,7 @@ def test_payment_permit_creation():
     )
 
     assert permit.buyer == "TTestBuyerAddress"
-    assert permit.payment.max_pay_amount == "1000000"
+    assert permit.payment.pay_amount == "1000000"
     assert permit.meta.kind == "PAYMENT_ONLY"
 
 
@@ -68,7 +68,7 @@ def test_payment_permit_serialization():
         caller="TTestCallerAddress",
         payment=Payment(
             payToken="TTestTokenAddress",
-            maxPayAmount="1000000",
+            payAmount="1000000",
             payTo="TTestPayToAddress",
         ),
         fee=Fee(feeTo="TTestFeeAddress", feeAmount="10000"),
@@ -82,4 +82,4 @@ def test_payment_permit_serialization():
     data = permit.model_dump(by_alias=True)
     assert "buyer" in data
     assert "payment" in data
-    assert data["payment"]["maxPayAmount"] == "1000000"
+    assert data["payment"]["payAmount"] == "1000000"

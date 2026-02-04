@@ -42,7 +42,7 @@ def sample_permit():
         caller="TTestCallerAddress111111111111111",
         payment=Payment(
             payToken="TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
-            maxPayAmount="1000000",
+            payAmount="1000000",
             payTo="TTestPayToAddress1111111111111111",
         ),
         fee=Fee(

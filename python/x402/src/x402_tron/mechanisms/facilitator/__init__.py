@@ -3,11 +3,11 @@ Facilitator Mechanisms
 """
 
 from x402_tron.mechanisms.facilitator.base import FacilitatorMechanism
-from x402_tron.mechanisms.facilitator.base_upto import BaseUptoFacilitatorMechanism
-from x402_tron.mechanisms.facilitator.tron_upto import UptoTronFacilitatorMechanism
+from x402_tron.mechanisms.facilitator.base_exact import BaseExactFacilitatorMechanism
+from x402_tron.mechanisms.facilitator.tron_exact import ExactTronFacilitatorMechanism
 
 __all__ = [
     "FacilitatorMechanism",
-    "BaseUptoFacilitatorMechanism",
-    "UptoTronFacilitatorMechanism",
+    "BaseExactFacilitatorMechanism",
+    "ExactTronFacilitatorMechanism",
 ]

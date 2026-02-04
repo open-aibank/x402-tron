@@ -33,7 +33,7 @@ export const PAYMENT_PERMIT_TYPES = {
   ],
   Payment: [
     { name: 'payToken', type: 'address' },
-    { name: 'maxPayAmount', type: 'uint256' },
+    { name: 'payAmount', type: 'uint256' },
     { name: 'payTo', type: 'address' },
   ],
   Fee: [

@@ -45,6 +45,7 @@ ERC20_ABI: List[dict[str, Any]] = [
 
 # PaymentPermit contract ABI
 # Based on IPaymentPermit.sol interface from x402_tron-contracts
+# Updated to match new contract structure (removed transferDetails parameter)
 PAYMENT_PERMIT_ABI: List[dict[str, Any]] = [
     {
         "inputs": [
@@ -70,7 +71,7 @@ PAYMENT_PERMIT_ABI: List[dict[str, Any]] = [
                         "type": "tuple",
                         "components": [
                             {"name": "payToken", "type": "address"},
-                            {"name": "maxPayAmount", "type": "uint256"},
+                            {"name": "payAmount", "type": "uint256"},
                             {"name": "payTo", "type": "address"},
                         ],
                     },
@@ -91,89 +92,12 @@ PAYMENT_PERMIT_ABI: List[dict[str, Any]] = [
                             {"name": "tokenId", "type": "uint256"},
                         ],
                     },
-                ],
-            },
-            {
-                "name": "transferDetails",
-                "type": "tuple",
-                "components": [
-                    {"name": "amount", "type": "uint256"},
                 ],
             },
             {"name": "owner", "type": "address"},
             {"name": "signature", "type": "bytes"},
         ],
         "name": "permitTransferFrom",
-        "stateMutability": "nonpayable",
-        "type": "function",
-        "outputs": [],
-    },
-    {
-        "inputs": [
-            {
-                "name": "permit",
-                "type": "tuple",
-                "components": [
-                    {
-                        "name": "meta",
-                        "type": "tuple",
-                        "components": [
-                            {"name": "kind", "type": "uint8"},
-                            {"name": "paymentId", "type": "bytes16"},
-                            {"name": "nonce", "type": "uint256"},
-                            {"name": "validAfter", "type": "uint256"},
-                            {"name": "validBefore", "type": "uint256"},
-                        ],
-                    },
-                    {"name": "buyer", "type": "address"},
-                    {"name": "caller", "type": "address"},
-                    {
-                        "name": "payment",
-                        "type": "tuple",
-                        "components": [
-                            {"name": "payToken", "type": "address"},
-                            {"name": "maxPayAmount", "type": "uint256"},
-                            {"name": "payTo", "type": "address"},
-                        ],
-                    },
-                    {
-                        "name": "fee",
-                        "type": "tuple",
-                        "components": [
-                            {"name": "feeTo", "type": "address"},
-                            {"name": "feeAmount", "type": "uint256"},
-                        ],
-                    },
-                    {
-                        "name": "delivery",
-                        "type": "tuple",
-                        "components": [
-                            {"name": "receiveToken", "type": "address"},
-                            {"name": "miniReceiveAmount", "type": "uint256"},
-                            {"name": "tokenId", "type": "uint256"},
-                        ],
-                    },
-                ],
-            },
-            {
-                "name": "callbackDetails",
-                "type": "tuple",
-                "components": [
-                    {"name": "callbackTarget", "type": "address"},
-                    {"name": "callbackData", "type": "bytes"},
-                ],
-            },
-            {
-                "name": "transferDetails",
-                "type": "tuple",
-                "components": [
-                    {"name": "amount", "type": "uint256"},
-                ],
-            },
-            {"name": "owner", "type": "address"},
-            {"name": "signature", "type": "bytes"},
-        ],
-        "name": "permitTransferFromWithCallback",
         "stateMutability": "nonpayable",
         "type": "function",
         "outputs": [],
@@ -213,7 +137,7 @@ def get_payment_permit_eip712_types() -> dict[str, Any]:
     - PERMIT_META_TYPEHASH =
       "PermitMeta(uint8 kind,bytes16 paymentId,uint256 nonce,uint256 validAfter,"
       "uint256 validBefore)"
-    - PAYMENT_TYPEHASH = "Payment(address payToken,uint256 maxPayAmount,address payTo)"
+    - PAYMENT_TYPEHASH = "Payment(address payToken,uint256 payAmount,address payTo)"
     - FEE_TYPEHASH = "Fee(address feeTo,uint256 feeAmount)"
     - DELIVERY_TYPEHASH = "Delivery(address receiveToken,uint256 miniReceiveAmount,uint256 tokenId)"
     - PAYMENT_PERMIT_DETAILS_TYPEHASH =
@@ -232,7 +156,7 @@ def get_payment_permit_eip712_types() -> dict[str, Any]:
         ],
         "Payment": [
             {"name": "payToken", "type": "address"},
-            {"name": "maxPayAmount", "type": "uint256"},
+            {"name": "payAmount", "type": "uint256"},
             {"name": "payTo", "type": "address"},
         ],
         "Fee": [

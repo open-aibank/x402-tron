@@ -24,7 +24,7 @@ export interface Payment {
   /** Payment token address */
   payToken: string;
   /** Maximum deductible amount */
-  maxPayAmount: string;
+  payAmount: string;
   /** Primary recipient address */
   payTo: string;
 }

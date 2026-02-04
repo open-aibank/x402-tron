@@ -2,4 +2,4 @@
  * x402 TRON Client Mechanism
  */
 
-export { UptoTronClientMechanism } from './upto.js';
+export { ExactTronClientMechanism } from './exact.js';
