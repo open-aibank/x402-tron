@@ -1,15 +1,11 @@
-"""
-x402 类型测试
-"""
 
-import pytest
 from x402.types import (
-    PaymentPermit,
-    PermitMeta,
-    Payment,
-    Fee,
     Delivery,
+    Fee,
+    Payment,
+    PaymentPermit,
     PaymentRequirements,
+    PermitMeta,
 )
 
 

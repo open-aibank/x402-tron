@@ -7,12 +7,12 @@ from typing import Any
 import httpx
 
 from x402.types import (
+    FeeQuoteResponse,
     PaymentPayload,
     PaymentRequirements,
-    VerifyResponse,
     SettleResponse,
     SupportedResponse,
-    FeeQuoteResponse,
+    VerifyResponse,
 )
 
 

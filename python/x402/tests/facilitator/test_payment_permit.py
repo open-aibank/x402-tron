@@ -1,24 +1,20 @@
-"""
-PaymentPermit 合约 Facilitator 测试 - Tron Nile 测试网
-合约地址: TDw6aSVuoix8vuXdrZgVXyejpCnmuvyjbF
-核心测试: settle 执行
-"""
 
 import asyncio
 import time
-import pytest
 from unittest.mock import AsyncMock, MagicMock
+
+import pytest
 
 from x402.mechanisms.facilitator.tron_upto import UptoTronFacilitatorMechanism
 from x402.types import (
-    PaymentRequirements,
+    Delivery,
+    Fee,
+    Payment,
     PaymentPayload,
     PaymentPayloadData,
     PaymentPermit,
+    PaymentRequirements,
     PermitMeta,
-    Payment,
-    Fee,
-    Delivery,
     ResourceInfo,
 )
 

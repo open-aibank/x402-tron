@@ -11,6 +11,7 @@ from x402.exceptions import UnknownTokenError
 @dataclass
 class TokenInfo:
     """Token information"""
+
     address: str
     decimals: int
     name: str
@@ -52,7 +53,7 @@ class TokenRegistry:
     @classmethod
     def get_token(cls, network: str, symbol: str) -> TokenInfo:
         """Get token information for specified network and symbol
-        
+
         Raises:
             UnknownTokenError: If token does not exist
         """
@@ -79,11 +80,11 @@ class TokenRegistry:
     @classmethod
     def parse_price(cls, price: str, network: str) -> dict[str, Any]:
         """Parse price string into asset amount
-        
+
         Args:
             price: Price string (e.g. "100 USDC")
             network: Network identifier
-            
+
         Returns:
             Dictionary containing amount, asset, decimals, etc.
         """
@@ -95,7 +96,7 @@ class TokenRegistry:
         amount = float(amount_str)
 
         token = cls.get_token(network, symbol)
-        amount_smallest = int(amount * (10 ** token.decimals))
+        amount_smallest = int(amount * (10**token.decimals))
 
         return {
             "amount": amount_smallest,

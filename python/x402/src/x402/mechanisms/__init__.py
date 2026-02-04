@@ -2,8 +2,6 @@
 x402 Mechanisms - Payment mechanisms for different chains
 """
 
-from x402.mechanisms import client
-from x402.mechanisms import server
-from x402.mechanisms import facilitator
+from x402.mechanisms import client, facilitator, server
 
 __all__ = ["client", "server", "facilitator"]

@@ -6,11 +6,11 @@ from abc import ABC, abstractmethod
 from typing import Any
 
 from x402.types import (
+    FeeQuoteResponse,
     PaymentPayload,
     PaymentRequirements,
-    VerifyResponse,
     SettleResponse,
-    FeeQuoteResponse,
+    VerifyResponse,
 )
 
 
