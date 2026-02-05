@@ -101,13 +101,10 @@ class X402Facilitator:
                         network=network,
                     )
                 )
-        
+
         # Create fee configuration
-        fee = SupportedFee(
-            fee_to=fee_to,
-            pricing=pricing
-        )
-        
+        fee = SupportedFee(fee_to=fee_to, pricing=pricing)
+
         return SupportedResponse(kinds=kinds, fee=fee)
 
     async def fee_quote(
