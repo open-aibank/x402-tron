@@ -9,7 +9,6 @@ from x402_tron.types import KIND_MAP
 
 
 class ExactTronServerMechanism(BaseExactServerMechanism):
-
     def _get_network_prefix(self) -> str:
         return "tron:"
 

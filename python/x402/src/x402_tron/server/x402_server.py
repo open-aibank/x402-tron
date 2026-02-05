@@ -203,6 +203,7 @@ class X402Server:
             effective_caller = self._facilitators[0].facilitator_address
             # Log for debugging
             import logging
+
             logger = logging.getLogger(__name__)
             logger.info(f"[CALLER] Setting caller from facilitator: {effective_caller}")
 
