@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from x402_tron.mechanisms.client.tron_upto import UptoTronClientMechanism
+from x402_tron.mechanisms.client.tron_exact import ExactTronClientMechanism
 from x402_tron.types import FeeInfo, PaymentRequirements, PaymentRequirementsExtra
 
 
@@ -57,7 +57,7 @@ class TestClientAuthorization:
     @pytest.mark.anyio
     async def test_ensure_allowance_called(self, mock_signer, nile_requirements, permit_context):
         """测试创建支付载荷时调用 ensure_allowance"""
-        mechanism = UptoTronClientMechanism(mock_signer)
+        mechanism = ExactTronClientMechanism(mock_signer)
 
         await mechanism.create_payment_payload(
             nile_requirements,
@@ -77,7 +77,7 @@ class TestClientAuthorization:
         self, mock_signer, nile_requirements, permit_context
     ):
         """测试授权金额包含费用"""
-        mechanism = UptoTronClientMechanism(mock_signer)
+        mechanism = ExactTronClientMechanism(mock_signer)
 
         await mechanism.create_payment_payload(
             nile_requirements,

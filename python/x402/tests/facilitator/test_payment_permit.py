@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from x402_tron.mechanisms.facilitator.tron_upto import UptoTronFacilitatorMechanism
+from x402_tron.mechanisms.facilitator.tron_exact import ExactTronFacilitatorMechanism
 from x402_tron.types import (
     Delivery,
     Fee,
@@ -81,7 +81,7 @@ class TestFacilitatorSettle:
     @pytest.mark.anyio
     async def test_settle_success(self, mock_signer, valid_payload, nile_requirements):
         """测试成功结算"""
-        mechanism = UptoTronFacilitatorMechanism(mock_signer)
+        mechanism = ExactTronFacilitatorMechanism(mock_signer)
 
         result = await mechanism.settle(valid_payload, nile_requirements)
 
@@ -95,7 +95,7 @@ class TestFacilitatorSettle:
         self, mock_signer, valid_payload, nile_requirements
     ):
         """测试 settle 调用 permitTransferFrom 方法"""
-        mechanism = UptoTronFacilitatorMechanism(mock_signer)
+        mechanism = ExactTronFacilitatorMechanism(mock_signer)
 
         await mechanism.settle(valid_payload, nile_requirements)
 
@@ -106,7 +106,7 @@ class TestFacilitatorSettle:
     async def test_settle_transaction_failed(self, mock_signer, valid_payload, nile_requirements):
         """测试交易失败"""
         mock_signer.write_contract = AsyncMock(return_value=None)
-        mechanism = UptoTronFacilitatorMechanism(mock_signer)
+        mechanism = ExactTronFacilitatorMechanism(mock_signer)
 
         result = await mechanism.settle(valid_payload, nile_requirements)
 
