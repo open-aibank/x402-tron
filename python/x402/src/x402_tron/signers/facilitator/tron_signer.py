@@ -2,7 +2,11 @@
 TronFacilitatorSigner - TRON facilitator signer implementation
 """
 
+from __future__ import annotations
+
+
 import asyncio
+import os
 import time
 from typing import Any
 
@@ -33,7 +37,12 @@ class TronFacilitatorSigner(FacilitatorSigner):
             try:
                 from tronpy import AsyncTron
 
-                self._async_tron_client = AsyncTron(network=self._network)
+                kwargs = {"network": self._network}
+                api_key = os.environ.get("TRON_GRID_API_KEY")
+                if api_key:
+                    kwargs["conf"] = {"api_key": api_key}
+
+                self._async_tron_client = AsyncTron(**kwargs)
             except ImportError:
                 pass
         return self._async_tron_client

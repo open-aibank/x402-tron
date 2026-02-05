@@ -2,8 +2,12 @@
 TronClientSigner - TRON client signer implementation
 """
 
+from __future__ import annotations
+
+
 import json
 import logging
+import os
 from typing import Any
 
 from x402_tron.abi import EIP712_DOMAIN_TYPE, ERC20_ABI, PAYMENT_PERMIT_PRIMARY_TYPE
@@ -22,7 +26,11 @@ class TronClientSigner(ClientSigner):
         self._address = self._derive_address(clean_key)
         self._network = network
         self._async_tron_client: Any = None
-        logger.info(f"TronClientSigner initialized: address={self._address}, network={network}")
+        # Log initialization (masked api key if present in env)
+        api_key_present = "Yes" if "TRON_GRID_API_KEY" in os.environ else "No"
+        logger.info(
+            f"TronClientSigner initialized: address={self._address}, network={network}, env_api_key_present={api_key_present}"
+        )
 
     @classmethod
     def from_private_key(cls, private_key: str, network: str | None = None) -> "TronClientSigner":
@@ -47,7 +55,12 @@ class TronClientSigner(ClientSigner):
             try:
                 from tronpy import AsyncTron
 
-                self._async_tron_client = AsyncTron(network=self._network)
+                kwargs = {"network": self._network}
+                api_key = os.environ.get("TRON_GRID_API_KEY")
+                if api_key:
+                    kwargs["conf"] = {"api_key": api_key}
+
+                self._async_tron_client = AsyncTron(**kwargs)
             except ImportError:
                 pass
         return self._async_tron_client

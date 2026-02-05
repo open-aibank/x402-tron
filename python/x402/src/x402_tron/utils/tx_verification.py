@@ -5,7 +5,11 @@ Provides generic functionality to verify blockchain transaction results,
 ensuring contract transfers and deliveries match expected parameters.
 """
 
+from __future__ import annotations
+
+
 import logging
+import os
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any, Protocol

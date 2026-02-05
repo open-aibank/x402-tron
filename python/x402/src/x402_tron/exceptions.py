@@ -2,6 +2,9 @@
 x402 custom exception hierarchy
 """
 
+from __future__ import annotations
+
+
 
 class X402Error(Exception):
     """x402 base exception"""

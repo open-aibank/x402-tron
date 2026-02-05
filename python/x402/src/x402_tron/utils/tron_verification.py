@@ -4,6 +4,9 @@ TRON Transaction Verification
 Provides TRON-specific transaction verification functionality.
 """
 
+from __future__ import annotations
+import os
+
 from typing import Any
 
 from x402_tron.utils.tx_verification import BaseTransactionVerifier, TransferEvent
@@ -23,7 +26,12 @@ class TronTransactionVerifier(BaseTransactionVerifier):
             try:
                 from tronpy import AsyncTron
 
-                self._async_client = AsyncTron(network=self._network)
+                kwargs = {"network": self._network}
+                api_key = os.environ.get("TRON_GRID_API_KEY")
+                if api_key:
+                    kwargs["conf"] = {"api_key": api_key}
+
+                self._async_client = AsyncTron(**kwargs)
             except ImportError:
                 raise RuntimeError("tronpy is required for TRON transaction verification")
         return self._async_client
