@@ -31,6 +31,12 @@ class TokenRegistry:
                 name="Tether USD",
                 symbol="USDT",
             ),
+            "USDD": TokenInfo(
+                address="TXDk8mbtRbXeYuMNS83CfKPaYYT8XWv9Hz",
+                decimals=18,
+                name="Decentralized USD",
+                symbol="USDD",
+            ),
         },
         "tron:shasta": {
             "USDT": TokenInfo(
@@ -46,6 +52,12 @@ class TokenRegistry:
                 decimals=6,
                 name="Tether USD",
                 symbol="USDT",
+            ),
+            "USDD": TokenInfo(
+                address="TGjgvdTWWrybVLaVeFqSyVqJQWjxqRYbaK",
+                decimals=18,
+                name="Decentralized USD",
+                symbol="USDD",
             ),
         },
     }
