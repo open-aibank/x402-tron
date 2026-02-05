@@ -104,6 +104,8 @@ export interface PaymentPermitContext {
     validAfter: number;
     validBefore: number;
   };
+  /** Caller address (facilitator that will execute the permit) */
+  caller?: string;
   delivery: {
     receiveToken: string;
     miniReceiveAmount: string;

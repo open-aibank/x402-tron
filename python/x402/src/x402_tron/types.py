@@ -255,6 +255,10 @@ class SupportedResponse(BaseModel):
 
     kinds: list[SupportedKind]
     fee: Optional[SupportedFee] = None
+    facilitator_address: Optional[str] = Field(None, alias="facilitatorAddress")
+
+    class Config:
+        populate_by_name = True
 
 
 class FeeQuoteResponse(BaseModel):

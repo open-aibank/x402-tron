@@ -150,15 +150,19 @@ class X402Server:
             facilitator = self._facilitators[0]
             # Fetch and cache facilitator address for use in create_payment_required_response
             await facilitator.fetch_facilitator_address()
-            fee_quote = await facilitator.fee_quote(requirements)
-            if fee_quote:
-                if requirements.extra is None:
-                    from x402_tron.types import PaymentRequirementsExtra
+            
+            # Only get fee quote if facilitator charges fees
+            supported = await facilitator.supported()
+            if supported.fee:
+                fee_quote = await facilitator.fee_quote(requirements)
+                if fee_quote:
+                    if requirements.extra is None:
+                        from x402_tron.types import PaymentRequirementsExtra
 
-                    requirements.extra = PaymentRequirementsExtra()
-                # Set facilitatorId in the fee info
-                fee_quote.fee.facilitator_id = facilitator.facilitator_id
-                requirements.extra.fee = fee_quote.fee
+                        requirements.extra = PaymentRequirementsExtra()
+                    # Set facilitatorId in the fee info
+                    fee_quote.fee.facilitator_id = facilitator.facilitator_id
+                    requirements.extra.fee = fee_quote.fee
 
         return requirements
 
@@ -197,6 +201,10 @@ class X402Server:
         effective_caller = caller
         if effective_caller is None and self._facilitators:
             effective_caller = self._facilitators[0].facilitator_address
+            # Log for debugging
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.info(f"[CALLER] Setting caller from facilitator: {effective_caller}")
         
         extensions = PaymentRequiredExtensions(
             paymentPermitContext=PaymentPermitContext(

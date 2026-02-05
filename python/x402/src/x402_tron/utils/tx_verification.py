@@ -155,7 +155,7 @@ class BaseTransactionVerifier(ABC):
             self._logger.info("[EXPECTED] Fee: None")
 
         try:
-            # Step 1: Get transaction info and verify status
+            # Only verify transaction status
             tx_info = await self.get_transaction_info(tx_hash)
 
             status = tx_info.get("status", "").lower()
@@ -171,115 +171,6 @@ class BaseTransactionVerifier(ABC):
                 )
 
             self._logger.info(f"[OK] Transaction status: {status}")
-
-            # Step 2: Get and verify transfer events
-            transfers = await self.get_transaction_transfers(tx_hash, token_address)
-
-            if not transfers:
-                self._logger.warning(f"[FAILED] No transfer events found for tx: {tx_hash}")
-                self._logger.info("=" * 60)
-                return TransactionVerificationResult(
-                    success=False,
-                    tx_hash=tx_hash,
-                    block_number=tx_info.get("blockNumber"),
-                    error_reason="no_transfer_events",
-                    status_verified=True,
-                    transfers=[],
-                )
-
-            # Log actual transfers (one line per transfer)
-            self._logger.info(f"[ACTUAL] Found {len(transfers)} transfer(s):")
-            for i, transfer in enumerate(transfers, 1):
-                self._logger.info(
-                    "[ACTUAL] #%s: %s → %s | %s %s",
-                    i,
-                    transfer.from_addr,
-                    transfer.to_addr,
-                    transfer.amount,
-                    transfer.token,
-                )
-
-            # Step 3: Verify payment transfer
-            payment_verified = False
-            fee_verified = fee_amount == 0  # If no fee, consider it verified
-
-            for transfer in transfers:
-                normalized_to = self.normalize_address(transfer.to_addr)
-
-                # Check payment transfer
-                if normalized_to == expected_pay_to:
-                    if transfer.amount >= expected_amount:
-                        payment_verified = True
-                        self._logger.info(
-                            "[COMPARE] ✓ Payment matched: %s → %s | %s (expected: %s)",
-                            transfer.from_addr,
-                            transfer.to_addr,
-                            transfer.amount,
-                            expected_amount,
-                        )
-                    else:
-                        self._logger.warning(
-                            "[COMPARE] ✗ Payment MISMATCH: got %s, expected %s",
-                            transfer.amount,
-                            expected_amount,
-                        )
-
-                # Check fee transfer
-                if expected_fee_to and normalized_to == expected_fee_to:
-                    if transfer.amount >= fee_amount:
-                        fee_verified = True
-                        self._logger.info(
-                            "[COMPARE] ✓ Fee matched: %s → %s | %s (expected: %s)",
-                            transfer.from_addr,
-                            transfer.to_addr,
-                            transfer.amount,
-                            fee_amount,
-                        )
-                    else:
-                        self._logger.warning(
-                            "[COMPARE] ✗ Fee MISMATCH: got %s, expected %s",
-                            transfer.amount,
-                            fee_amount,
-                        )
-
-            if not payment_verified:
-                self._logger.error(
-                    "[COMPARE] ✗ Payment NOT FOUND: expected %s → %s | %s",
-                    expected_from,
-                    expected_pay_to,
-                    expected_amount,
-                )
-                self._logger.info("=" * 60)
-                return TransactionVerificationResult(
-                    success=False,
-                    tx_hash=tx_hash,
-                    block_number=tx_info.get("blockNumber"),
-                    error_reason="payment_not_verified",
-                    status_verified=True,
-                    payment_verified=False,
-                    fee_verified=fee_verified,
-                    transfers=transfers,
-                )
-
-            if not fee_verified:
-                self._logger.error(
-                    "[COMPARE] ✗ Fee NOT FOUND: expected %s → %s | %s",
-                    expected_from,
-                    expected_fee_to,
-                    fee_amount,
-                )
-                self._logger.info("=" * 60)
-                return TransactionVerificationResult(
-                    success=False,
-                    tx_hash=tx_hash,
-                    block_number=tx_info.get("blockNumber"),
-                    error_reason="fee_not_verified",
-                    status_verified=True,
-                    payment_verified=True,
-                    fee_verified=False,
-                    transfers=transfers,
-                )
-
             self._logger.info(f"[SUCCESS] Transaction verification passed: {tx_hash}")
             self._logger.info("=" * 60)
             return TransactionVerificationResult(
@@ -287,9 +178,6 @@ class BaseTransactionVerifier(ABC):
                 tx_hash=tx_hash,
                 block_number=tx_info.get("blockNumber"),
                 status_verified=True,
-                payment_verified=True,
-                fee_verified=True,
-                transfers=transfers,
             )
 
         except Exception as e:

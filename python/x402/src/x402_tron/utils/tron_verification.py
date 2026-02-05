@@ -15,18 +15,18 @@ class TronTransactionVerifier(BaseTransactionVerifier):
     def __init__(self, network: str = "nile") -> None:
         super().__init__()
         self._network = network
-        self._client: Any = None
+        self._async_client: Any = None
 
-    def _ensure_client(self) -> Any:
-        """Lazy initialize tronpy client"""
-        if self._client is None:
+    def _ensure_async_client(self) -> Any:
+        """Lazy initialize async tronpy client"""
+        if self._async_client is None:
             try:
-                from tronpy import Tron
+                from tronpy import AsyncTron
 
-                self._client = Tron(network=self._network)
+                self._async_client = AsyncTron(network=self._network)
             except ImportError:
                 raise RuntimeError("tronpy is required for TRON transaction verification")
-        return self._client
+        return self._async_client
 
     def normalize_address(self, address: str) -> str:
         """Normalize address to TRON Base58 format"""
@@ -46,10 +46,10 @@ class TronTransactionVerifier(BaseTransactionVerifier):
 
     async def get_transaction_info(self, tx_hash: str) -> dict[str, Any]:
         """Get TRON transaction information"""
-        client = self._ensure_client()
+        client = self._ensure_async_client()
 
         try:
-            info = client.get_transaction_info(tx_hash)
+            info = await client.get_transaction_info(tx_hash)
             if info:
                 receipt = info.get("receipt", {})
                 status = "confirmed" if receipt.get("result") == "SUCCESS" else "failed"
@@ -75,11 +75,11 @@ class TronTransactionVerifier(BaseTransactionVerifier):
 
         Parses the transaction logs for Transfer(address,address,uint256) events.
         """
-        client = self._ensure_client()
+        client = self._ensure_async_client()
         transfers: list[TransferEvent] = []
 
         try:
-            info = client.get_transaction_info(tx_hash)
+            info = await client.get_transaction_info(tx_hash)
             if not info:
                 return transfers
 

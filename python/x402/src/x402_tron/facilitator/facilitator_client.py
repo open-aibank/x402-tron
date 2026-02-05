@@ -73,8 +73,11 @@ class FacilitatorClient:
         """
         if self._facilitator_address is None:
             supported = await self.supported()
+            # Try to get address from fee.fee_to first, then from facilitator_address field
             if supported.fee:
                 self._facilitator_address = supported.fee.fee_to
+            elif supported.facilitator_address:
+                self._facilitator_address = supported.facilitator_address
         return self._facilitator_address
 
     async def supported(self) -> SupportedResponse:
