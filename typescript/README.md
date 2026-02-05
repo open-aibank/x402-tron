@@ -16,7 +16,7 @@ pnpm add @open-aibank/x402-tron tronweb
 ## Quick Start
 
 ```typescript
-import { X402Client, UptoTronClientMechanism, TronClientSigner, X402FetchClient } from '@open-aibank/x402-tron';
+import { X402Client, ExactTronClientMechanism, TronClientSigner, X402FetchClient } from '@open-aibank/x402-tron';
 import TronWeb from 'tronweb';
 
 // 1. Initialize TronWeb
@@ -30,7 +30,7 @@ const signer = TronClientSigner.withPrivateKey(tronWeb, 'your_private_key', 'nil
 
 // 3. Create X402Client and register mechanisms
 const x402Client = new X402Client()
-  .register('tron:*', new UptoTronClientMechanism(signer));
+  .register('tron:*', new ExactTronClientMechanism(signer));
 
 // 4. Create HTTP client with automatic 402 handling
 const client = new X402FetchClient(x402Client);

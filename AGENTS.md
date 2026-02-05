@@ -22,7 +22,7 @@ Supported chains: EVM, TRON
 
 ## Naming conventions
 
-- Mechanisms: `Upto{Chain}{Role}Mechanism` (e.g., `UptoEvmClientMechanism`)
+- Mechanisms: `Exact{Chain}{Role}Mechanism` (e.g., `ExactTronClientMechanism`)
 - Signers: `{Chain}{Role}Signer` (e.g., `TronClientSigner`)
 - SDK: `X402{Role}` (e.g., `X402Client`)
 - Files: `snake_case.py` (Python), `camelCase.ts` (TypeScript)

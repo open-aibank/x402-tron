@@ -24,7 +24,7 @@ import TronWeb from 'tronweb';
 import {
   X402Client,
   X402FetchClient,
-  UptoTronClientMechanism,
+  ExactTronClientMechanism,
   TronClientSigner,
 } from '@open-aibank/x402-tron';
 
@@ -36,7 +36,7 @@ const tronWeb = new TronWeb({
 
 // 2. Create signer and register payment mechanism
 const signer = TronClientSigner.withPrivateKey(tronWeb, 'your_private_key_here', 'nile');
-const x402Client = new X402Client().register('tron:*', new UptoTronClientMechanism(signer));
+const x402Client = new X402Client().register('tron:*', new ExactTronClientMechanism(signer));
 
 // 3. Create HTTP client with automatic 402 handling
 const client = new X402FetchClient(x402Client);
@@ -64,7 +64,7 @@ When you make a request to a protected resource:
 - **`X402Client`** - Core payment client that manages payment mechanisms
 - **`X402FetchClient`** - HTTP client wrapper with automatic 402 handling
 - **`TronClientSigner`** - Signs payment permits using TIP-712
-- **`UptoTronClientMechanism`** - Implements the "upto" payment scheme for TRON
+- **`ExactTronClientMechanism`** - Implements the "exact" payment scheme for TRON
 
 ## API Reference
 
@@ -83,8 +83,8 @@ const x402Client = new X402Client();
 Register a payment mechanism for a network pattern.
 
 ```typescript
-x402Client.register('tron:*', new UptoTronClientMechanism(signer));
-x402Client.register('tron:nile', new UptoTronClientMechanism(nileSigner));
+x402Client.register('tron:*', new ExactTronClientMechanism(signer));
+x402Client.register('tron:nile', new ExactTronClientMechanism(nileSigner));
 ```
 
 ##### `selectPaymentRequirements(accepts: PaymentRequirements[], filters?: PaymentRequirementsFilter): PaymentRequirements`
@@ -191,12 +191,12 @@ Ensure sufficient token allowance, approving if necessary.
 await signer.ensureAllowance(tokenAddress, BigInt(1000000), 'tron:nile', 'auto');
 ```
 
-### UptoTronClientMechanism
+### ExactTronClientMechanism
 
-Payment mechanism implementing the "upto" scheme for TRON.
+Payment mechanism implementing the "exact" scheme for TRON.
 
 ```typescript
-const mechanism = new UptoTronClientMechanism(signer);
+const mechanism = new ExactTronClientMechanism(signer);
 ```
 
 ## Usage Examples
@@ -205,7 +205,7 @@ const mechanism = new UptoTronClientMechanism(signer);
 
 ```typescript
 import TronWeb from 'tronweb';
-import { X402Client, X402FetchClient, UptoTronClientMechanism, TronClientSigner } from '@open-aibank/x402-tron';
+import { X402Client, X402FetchClient, ExactTronClientMechanism, TronClientSigner } from '@open-aibank/x402-tron';
 
 const tronWeb = new TronWeb({
   fullHost: 'https://nile.trongrid.io',
@@ -213,7 +213,7 @@ const tronWeb = new TronWeb({
 });
 
 const signer = TronClientSigner.withPrivateKey(tronWeb, process.env.TRON_PRIVATE_KEY, 'nile');
-const x402Client = new X402Client().register('tron:*', new UptoTronClientMechanism(signer));
+const x402Client = new X402Client().register('tron:*', new ExactTronClientMechanism(signer));
 const client = new X402FetchClient(x402Client);
 
 // Automatic payment handling
@@ -226,11 +226,11 @@ console.log(weather);
 
 ```typescript
 import TronWeb from 'tronweb';
-import { X402Client, UptoTronClientMechanism, TronClientSigner, encodePaymentPayload } from '@open-aibank/x402-tron';
+import { X402Client, ExactTronClientMechanism, TronClientSigner, encodePaymentPayload } from '@open-aibank/x402-tron';
 
 const tronWeb = new TronWeb({ fullHost: 'https://nile.trongrid.io', privateKey: process.env.TRON_PRIVATE_KEY });
 const signer = TronClientSigner.withPrivateKey(tronWeb, process.env.TRON_PRIVATE_KEY, 'nile');
-const x402Client = new X402Client().register('tron:*', new UptoTronClientMechanism(signer));
+const x402Client = new X402Client().register('tron:*', new ExactTronClientMechanism(signer));
 
 // First request
 const response = await fetch('https://api.example.com/data');
@@ -261,7 +261,7 @@ if (response.status === 402) {
 ### Custom Payment Selection
 
 ```typescript
-import { X402Client, X402FetchClient, UptoTronClientMechanism, TronClientSigner } from '@open-aibank/x402-tron';
+import { X402Client, X402FetchClient, ExactTronClientMechanism, TronClientSigner } from '@open-aibank/x402-tron';
 
 // Custom selector function
 const selector = (requirements) => {
@@ -277,16 +277,16 @@ const response = await client.get('https://api.example.com/data');
 
 ```typescript
 // In browser with TronLink wallet
-import { X402Client, X402FetchClient, UptoTronClientMechanism, TronClientSigner } from '@open-aibank/x402-tron';
+import { X402Client, X402FetchClient, ExactTronClientMechanism, TronClientSigner } from '@open-aibank/x402-tron';
 
 // Wait for TronLink
 const tronWeb = window.tronWeb;
 if (!tronWeb) {
-  throw new Error('TronLink not installed');
+  throw new Error('TronLink not found');
 }
 
 const signer = TronClientSigner.fromTronWeb(tronWeb, 'mainnet');
-const x402Client = new X402Client().register('tron:*', new UptoTronClientMechanism(signer));
+const x402Client = new X402Client().register('tron:*', new ExactTronClientMechanism(signer));
 const client = new X402FetchClient(x402Client);
 
 // Make paid requests
@@ -298,9 +298,9 @@ const response = await client.get('https://api.example.com/premium-content');
 ```typescript
 // Support multiple TRON networks
 const nileClient = new X402Client()
-  .register('tron:nile', new UptoTronClientMechanism(nileSigner))
-  .register('tron:shasta', new UptoTronClientMechanism(shastaSigner))
-  .register('tron:mainnet', new UptoTronClientMechanism(mainnetSigner));
+  .register('tron:nile', new ExactTronClientMechanism(nileSigner))
+  .register('tron:shasta', new ExactTronClientMechanism(shastaSigner))
+  .register('tron:mainnet', new ExactTronClientMechanism(mainnetSigner));
 ```
 
 ## Supported Networks
@@ -311,15 +311,15 @@ const nileClient = new X402Client()
 
 ## Payment Schemes
 
-### Upto Scheme
+### Exact Scheme
 
-The `upto` scheme allows payments up to a specified maximum amount. Useful for:
+The `exact` scheme allows payments for a specified exact amount. Useful for:
 
 - Pay-per-use APIs (e.g., LLM token generation)
-- Metered resources (compute time, bandwidth)
-- Dynamic pricing based on actual usage
+- Fixed-price resources
+- Predictable pricing for API calls
 
-The server can charge any amount up to the maximum specified in the payment permit.
+The server charges the exact amount specified in the payment permit.
 
 ## Security
 
@@ -343,7 +343,7 @@ npm i tronweb@latest
 Ensure you've registered a mechanism for the network:
 
 ```typescript
-x402Client.register('tron:nile', new UptoTronClientMechanism(signer));
+x402Client.register('tron:nile', new ExactTronClientMechanism(signer));
 ```
 
 ### "Insufficient allowance"

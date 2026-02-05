@@ -23,7 +23,7 @@ npm i @open-aibank/x402-tron
 ## Features
 
 - **TRON Native**: Built specifically for TRON blockchain (Mainnet, Shasta, Nile)
-- **Multiple Payment Schemes**: Support for `upto` payment scheme with extensibility for more
+- **Multiple Payment Schemes**: Support for `exact` payment scheme with extensibility for more
 - **Easy Integration**: One-line server protection, simple client SDK
 - **FastAPI & Flask Support**: Ready-to-use middleware for popular Python frameworks
 - **TypeScript Support**: Full TypeScript SDK for client-side integration
@@ -58,7 +58,7 @@ async def protected_resource():
 ### Client (TypeScript)
 
 ```typescript
-import { X402Client, UptoTronClientMechanism, TronClientSigner } from '@open-aibank/x402-tron';
+import { X402Client, ExactTronClientMechanism, TronClientSigner } from '@open-aibank/x402-tron';
 import TronWeb from 'tronweb';
 
 // Initialize client
@@ -68,7 +68,7 @@ const tronWeb = new TronWeb({
 });
 const signer = TronClientSigner.withPrivateKey(tronWeb, 'your_private_key', 'nile');
 const client = new X402Client();
-const mechanism = new UptoTronClientMechanism(signer);
+const mechanism = new ExactTronClientMechanism(signer);
 
 client.register('tron:*', mechanism);
 
@@ -95,7 +95,7 @@ if (response.status === 402) {
 ```python
 from fastapi import FastAPI
 from x402_tron.facilitator import X402Facilitator
-from x402_tron.mechanisms.facilitator import UptoTronFacilitatorMechanism
+from x402_tron.mechanisms.facilitator import ExactTronFacilitatorMechanism
 from x402_tron.signers.facilitator import TronFacilitatorSigner
 
 app = FastAPI()
@@ -103,7 +103,7 @@ app = FastAPI()
 # Initialize facilitator
 facilitator = X402Facilitator()
 signer = TronFacilitatorSigner(private_key="YOUR_PRIVATE_KEY")
-mechanism = UptoTronFacilitatorMechanism(signer=signer)
+mechanism = ExactTronFacilitatorMechanism(signer=signer)
 
 facilitator.register_mechanism("tron:nile", mechanism)
 
@@ -156,12 +156,12 @@ sequenceDiagram
 
 ## Supported Schemes
 
-### Upto Scheme
+### Exact Scheme
 
-The `upto` scheme allows payments up to a specified amount, useful for:
+The `exact` scheme allows payments for a specified exact amount, useful for:
 - Pay-per-use APIs (LLM token generation, data processing)
-- Metered resources (compute time, bandwidth)
-- Dynamic pricing based on actual usage
+- Fixed-price resources
+- Predictable pricing for API calls
 
 ## Project Structure
 
