@@ -55,10 +55,8 @@ class X402Facilitator:
     Manages payment mechanisms and coordinates verification/settlement.
     """
 
-    def __init__(self, fee_to: str | None = None, pricing: str = "flat") -> None:
+    def __init__(self) -> None:
         self._mechanisms: dict[str, dict[str, FacilitatorMechanism]] = {}
-        self._fee_to = fee_to
-        self._pricing = pricing
 
     def register(
         self,
@@ -82,9 +80,13 @@ class X402Facilitator:
             self._mechanisms[network][scheme] = mechanism
         return self
 
-    def supported(self) -> SupportedResponse:
+    def supported(self, fee_to: str, pricing: str = "flat") -> SupportedResponse:
         """
         Return supported network/scheme combinations.
+
+        Args:
+            fee_to: Facilitator fee recipient address (required)
+            pricing: Fee pricing model, defaults to "flat"
 
         Returns:
             SupportedResponse with all supported capabilities including fee info
@@ -99,15 +101,10 @@ class X402Facilitator:
                         network=network,
                     )
                 )
-        
-        # Create fee configuration if fee_to is set
-        fee = None
-        if self._fee_to:
-            fee = SupportedFee(
-                fee_to=self._fee_to,
-                pricing=self._pricing
-            )
-        
+
+        # Create fee configuration
+        fee = SupportedFee(fee_to=fee_to, pricing=pricing)
+
         return SupportedResponse(kinds=kinds, fee=fee)
 
     async def fee_quote(
