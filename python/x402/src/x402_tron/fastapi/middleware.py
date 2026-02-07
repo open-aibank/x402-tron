@@ -78,32 +78,31 @@ class X402Middleware:
         if prices is not None:
             if not network or not pay_to:
                 raise ValueError("network and pay_to are required when using prices list")
-            configs = [
-                ResourceConfig(
-                    scheme=scheme,
-                    network=network,
-                    price=p,
-                    pay_to=pay_to,
-                    valid_for=valid_for,
-                    delivery_mode=delivery_mode,
-                )
-                for p in prices
-            ]
+            price_list = prices
         else:
             if not price or not network or not pay_to:
                 raise ValueError(
                     "price, network, and pay_to are required when prices list is not provided"
                 )
-            configs = [
-                ResourceConfig(
-                    scheme=scheme,
-                    network=network,
-                    price=price,
-                    pay_to=pay_to,
-                    valid_for=valid_for,
-                    delivery_mode=delivery_mode,
-                )
-            ]
+            price_list = [price]
+
+        # Validate all token symbols at startup
+        from x402_tron.tokens import TokenRegistry
+
+        for p in price_list:
+            TokenRegistry.parse_price(p, network)
+
+        configs = [
+            ResourceConfig(
+                scheme=scheme,
+                network=network,
+                price=p,
+                pay_to=pay_to,
+                valid_for=valid_for,
+                delivery_mode=delivery_mode,
+            )
+            for p in price_list
+        ]
 
         def decorator(func: Callable) -> Callable:
             @wraps(func)
