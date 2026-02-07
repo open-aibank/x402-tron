@@ -63,6 +63,18 @@ class TokenRegistry:
     }
 
     @classmethod
+    def register_token(cls, network: str, token: TokenInfo) -> None:
+        """Register a custom token for specified network
+
+        Args:
+            network: Network identifier (e.g. "tron:nile")
+            token: TokenInfo to register
+        """
+        if network not in cls._tokens:
+            cls._tokens[network] = {}
+        cls._tokens[network][token.symbol.upper()] = token
+
+    @classmethod
     def get_token(cls, network: str, symbol: str) -> TokenInfo:
         """Get token information for specified network and symbol
 
@@ -88,6 +100,16 @@ class TokenRegistry:
     def get_network_tokens(cls, network: str) -> dict[str, TokenInfo]:
         """Get all tokens for specified network"""
         return cls._tokens.get(network, {})
+
+    @classmethod
+    def get_network_token_addresses(cls, network: str) -> set[str]:
+        """Get all token addresses for specified network (lowercase)
+
+        Returns:
+            Set of token contract addresses in lowercase
+        """
+        tokens = cls._tokens.get(network, {})
+        return {info.address.lower() for info in tokens.values()}
 
     @classmethod
     def parse_price(cls, price: str, network: str) -> dict[str, Any]:

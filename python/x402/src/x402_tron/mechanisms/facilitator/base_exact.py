@@ -44,13 +44,20 @@ class BaseExactFacilitatorMechanism(FacilitatorMechanism):
         signer: "FacilitatorSigner",
         fee_to: str | None = None,
         base_fee: int = DEFAULT_BASE_FEE,
+        allowed_tokens: set[str] | None = None,
     ) -> None:
         self._signer = signer
         self._fee_to = fee_to or signer.get_address()
         self._base_fee = base_fee
+        self._allowed_tokens: set[str] | None = (
+            {t.lower() for t in allowed_tokens} if allowed_tokens is not None else None
+        )
         self._address_converter = self._get_address_converter()
         self._logger = logging.getLogger(self.__class__.__name__)
-        self._logger.info(f"Initialized: fee_to={self._fee_to}, base_fee={base_fee}")
+        self._logger.info(
+            f"Initialized: fee_to={self._fee_to}, base_fee={base_fee}, "
+            f"allowed_tokens={self._allowed_tokens}"
+        )
 
     @abstractmethod
     def _get_address_converter(self) -> AddressConverter:
@@ -190,6 +197,15 @@ class BaseExactFacilitatorMechanism(FacilitatorMechanism):
 
     def _validate_permit(self, permit: Any, requirements: PaymentRequirements) -> str | None:
         """Validate permit matches requirements, returns error reason or None"""
+        # Token whitelist check - reject unsupported tokens before any other validation
+        if self._allowed_tokens is not None:
+            if permit.payment.pay_token.lower() not in self._allowed_tokens:
+                self._logger.warning(
+                    f"Token not allowed: {permit.payment.pay_token} "
+                    f"not in {self._allowed_tokens}"
+                )
+                return "token_not_allowed"
+
         if int(permit.payment.pay_amount) < int(requirements.amount):
             self._logger.warning(
                 f"Amount mismatch: {permit.payment.pay_amount} < {requirements.amount}"

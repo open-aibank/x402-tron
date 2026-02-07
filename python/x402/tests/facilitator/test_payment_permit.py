@@ -63,10 +63,70 @@ def valid_payload(nile_requirements):
                     payAmount="1000000",
                     payTo="TTestMerchantAddress",
                 ),
-                fee=Fee(feeTo="TTestFacilitator", feeAmount="10000"),
+                fee=Fee(feeTo="TTestFacilitator", feeAmount="1000000"),
             ),
         ),
     )
+
+
+class TestTokenWhitelist:
+    """Token whitelist validation tests"""
+
+    @pytest.mark.anyio
+    async def test_allowed_token_passes(self, mock_signer, valid_payload, nile_requirements):
+        """Whitelisted token should pass validation"""
+        mechanism = ExactTronFacilitatorMechanism(
+            mock_signer, allowed_tokens={"TTestUSDTAddress"}
+        )
+        result = await mechanism.verify(valid_payload, nile_requirements)
+        assert result.is_valid is True
+
+    @pytest.mark.anyio
+    async def test_disallowed_token_rejected(self, mock_signer, valid_payload, nile_requirements):
+        """Non-whitelisted token should be rejected"""
+        mechanism = ExactTronFacilitatorMechanism(
+            mock_signer, allowed_tokens={"TSomeOtherToken"}
+        )
+        result = await mechanism.verify(valid_payload, nile_requirements)
+        assert result.is_valid is False
+        assert result.invalid_reason == "token_not_allowed"
+
+    @pytest.mark.anyio
+    async def test_none_whitelist_allows_all(self, mock_signer, valid_payload, nile_requirements):
+        """None whitelist (default) should allow any token"""
+        mechanism = ExactTronFacilitatorMechanism(mock_signer, allowed_tokens=None)
+        result = await mechanism.verify(valid_payload, nile_requirements)
+        assert result.is_valid is True
+
+    @pytest.mark.anyio
+    async def test_empty_whitelist_rejects_all(self, mock_signer, valid_payload, nile_requirements):
+        """Empty whitelist should reject all tokens"""
+        mechanism = ExactTronFacilitatorMechanism(mock_signer, allowed_tokens=set())
+        result = await mechanism.verify(valid_payload, nile_requirements)
+        assert result.is_valid is False
+        assert result.invalid_reason == "token_not_allowed"
+
+    @pytest.mark.anyio
+    async def test_case_insensitive_match(self, mock_signer, valid_payload, nile_requirements):
+        """Token whitelist matching should be case-insensitive"""
+        mechanism = ExactTronFacilitatorMechanism(
+            mock_signer, allowed_tokens={"ttestusdtaddress"}
+        )
+        result = await mechanism.verify(valid_payload, nile_requirements)
+        assert result.is_valid is True
+
+    @pytest.mark.anyio
+    async def test_settle_rejects_disallowed_token(
+        self, mock_signer, valid_payload, nile_requirements
+    ):
+        """Settle should also reject non-whitelisted tokens"""
+        mechanism = ExactTronFacilitatorMechanism(
+            mock_signer, allowed_tokens={"TSomeOtherToken"}
+        )
+        result = await mechanism.settle(valid_payload, nile_requirements)
+        assert result.success is False
+        assert result.error_reason == "token_not_allowed"
+        mock_signer.write_contract.assert_not_called()
 
 
 class TestFacilitatorSettle:
