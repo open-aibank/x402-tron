@@ -49,10 +49,12 @@ class BaseExactFacilitatorMechanism(FacilitatorMechanism):
         self._signer = signer
         self._fee_to = fee_to or signer.get_address()
         self._base_fee = base_fee
-        self._allowed_tokens: set[str] | None = (
-            {t.lower() for t in allowed_tokens} if allowed_tokens is not None else None
-        )
         self._address_converter = self._get_address_converter()
+        self._allowed_tokens: set[str] | None = (
+            {self._address_converter.normalize(t) for t in allowed_tokens}
+            if allowed_tokens is not None
+            else None
+        )
         self._logger = logging.getLogger(self.__class__.__name__)
         self._logger.info(
             f"Initialized: fee_to={self._fee_to}, base_fee={base_fee}, "
@@ -199,9 +201,11 @@ class BaseExactFacilitatorMechanism(FacilitatorMechanism):
 
     def _validate_permit(self, permit: Any, requirements: PaymentRequirements) -> str | None:
         """Validate permit matches requirements, returns error reason or None"""
+        norm = self._address_converter.normalize
+
         # Token whitelist check - reject unsupported tokens before any other validation
         if self._allowed_tokens is not None:
-            if permit.payment.pay_token.lower() not in self._allowed_tokens:
+            if norm(permit.payment.pay_token) not in self._allowed_tokens:
                 self._logger.warning(
                     f"Token not allowed: {permit.payment.pay_token} not in {self._allowed_tokens}"
                 )
@@ -213,21 +217,21 @@ class BaseExactFacilitatorMechanism(FacilitatorMechanism):
             )
             return "amount_mismatch"
 
-        # Address comparison (case-insensitive)
-        if permit.payment.pay_to.lower() != requirements.pay_to.lower():
+        # Address comparison (normalize to handle hex/Base58 mixed inputs)
+        if norm(permit.payment.pay_to) != norm(requirements.pay_to):
             self._logger.warning(
                 f"PayTo mismatch: {permit.payment.pay_to} != {requirements.pay_to}"
             )
             return "payto_mismatch"
 
-        if permit.payment.pay_token.lower() != requirements.asset.lower():
+        if norm(permit.payment.pay_token) != norm(requirements.asset):
             self._logger.warning(
                 f"Token mismatch: {permit.payment.pay_token} != {requirements.asset}"
             )
             return "token_mismatch"
 
         # Fee validation: compare against facilitator's own configured fee
-        if permit.fee.fee_to.lower() != self._fee_to.lower():
+        if norm(permit.fee.fee_to) != norm(self._fee_to):
             self._logger.warning(f"FeeTo mismatch: {permit.fee.fee_to} != {self._fee_to}")
             return "fee_to_mismatch"
         if int(permit.fee.fee_amount) < self._base_fee:

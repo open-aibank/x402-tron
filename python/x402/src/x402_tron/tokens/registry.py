@@ -92,7 +92,7 @@ class TokenRegistry:
         """Find token information by address"""
         tokens = cls._tokens.get(network, {})
         for info in tokens.values():
-            if info.address.lower() == address.lower():
+            if info.address == address:
                 return info
         return None
 
@@ -103,13 +103,13 @@ class TokenRegistry:
 
     @classmethod
     def get_network_token_addresses(cls, network: str) -> set[str]:
-        """Get all token addresses for specified network (lowercase)
+        """Get all token addresses for specified network.
 
         Returns:
-            Set of token contract addresses in lowercase
+            Set of token contract addresses
         """
         tokens = cls._tokens.get(network, {})
-        return {info.address.lower() for info in tokens.values()}
+        return {info.address for info in tokens.values()}
 
     @classmethod
     def parse_price(cls, price: str, network: str) -> dict[str, Any]:

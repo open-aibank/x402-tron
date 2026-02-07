@@ -103,11 +103,12 @@ class TestTokenWhitelist:
         assert result.invalid_reason == "token_not_allowed"
 
     @pytest.mark.anyio
-    async def test_case_insensitive_match(self, mock_signer, valid_payload, nile_requirements):
-        """Token whitelist matching should be case-insensitive"""
+    async def test_case_sensitive_match(self, mock_signer, valid_payload, nile_requirements):
+        """Token whitelist matching should be case-sensitive (TRON Base58)"""
         mechanism = ExactTronFacilitatorMechanism(mock_signer, allowed_tokens={"ttestusdtaddress"})
         result = await mechanism.verify(valid_payload, nile_requirements)
-        assert result.is_valid is True
+        assert result.is_valid is False
+        assert result.invalid_reason == "token_not_allowed"
 
     @pytest.mark.anyio
     async def test_settle_rejects_disallowed_token(
