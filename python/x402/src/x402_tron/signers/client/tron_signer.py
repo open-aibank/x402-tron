@@ -167,7 +167,12 @@ class TronClientSigner(ClientSigner):
             contract.abi = ERC20_ABI
             balance = await contract.functions.balanceOf(self._address)
             balance_int = int(balance)
-            logger.info(f"Token balance: {balance_int} (token={token}, network={network})")
+            from x402_tron.tokens import TokenRegistry
+            token_info = TokenRegistry.find_by_address(network, token)
+            decimals = token_info.decimals if token_info else 6
+            symbol = token_info.symbol if token_info else token[:8]
+            human = balance_int / (10 ** decimals)
+            logger.info(f"Token balance: {human:.6f} {symbol} (raw={balance_int}, token={token}, network={network})")
             return balance_int
         except Exception as e:
             logger.error(f"Failed to check balance: {e}")

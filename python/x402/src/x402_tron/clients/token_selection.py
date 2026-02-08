@@ -91,22 +91,28 @@ def sufficient_balance_policy(signer: "ClientSigner"):
                 fee = req.extra.fee
                 if fee and hasattr(fee, "fee_amount"):
                     needed += int(fee.fee_amount)
+            decimals = _get_decimals(req)
+            token_info = TokenRegistry.find_by_address(req.network, req.asset)
+            symbol = token_info.symbol if token_info else req.asset[:8]
+            divisor = 10 ** decimals
+            h_balance = balance / divisor
+            h_needed = needed / divisor
             if balance >= needed:
                 logger.info(
-                    "Token %s on %s: balance=%d >= needed=%d (OK)",
-                    req.asset,
+                    "%s on %s: balance=%.6f >= needed=%.6f (OK)",
+                    symbol,
                     req.network,
-                    balance,
-                    needed,
+                    h_balance,
+                    h_needed,
                 )
                 affordable.append(req)
             else:
                 logger.info(
-                    "Token %s on %s: balance=%d < needed=%d (skipped)",
-                    req.asset,
+                    "%s on %s: balance=%.6f < needed=%.6f (skipped)",
+                    symbol,
                     req.network,
-                    balance,
-                    needed,
+                    h_balance,
+                    h_needed,
                 )
         return affordable if affordable else requirements
 
