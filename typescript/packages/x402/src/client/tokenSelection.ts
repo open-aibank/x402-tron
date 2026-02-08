@@ -47,11 +47,17 @@ export function sufficientBalancePolicy(signer: ClientSigner): PaymentPolicy {
       if (req.extra?.fee?.feeAmount) {
         needed += BigInt(req.extra.fee.feeAmount);
       }
+      const decimals = getDecimals(req);
+      const token = findByAddress(req.network, req.asset);
+      const symbol = token?.symbol ?? req.asset.slice(0, 8);
+      const divisor = 10 ** decimals;
+      const hBalance = (Number(balance) / divisor).toFixed(6);
+      const hNeeded = (Number(needed) / divisor).toFixed(6);
       if (balance >= needed) {
-        console.debug(`[x402] Balance OK: ${req.asset} on ${req.network}: ${balance} >= ${needed}`);
+        console.log(`[x402] ${symbol} on ${req.network}: balance=${hBalance} >= needed=${hNeeded} (OK)`);
         affordable.push(req);
       } else {
-        console.debug(`[x402] Balance insufficient: ${req.asset} on ${req.network}: ${balance} < ${needed}, skipped`);
+        console.log(`[x402] ${symbol} on ${req.network}: balance=${hBalance} < needed=${hNeeded} (skipped)`);
       }
     }
     return affordable.length > 0 ? affordable : requirements;
