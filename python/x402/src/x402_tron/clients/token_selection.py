@@ -81,3 +81,6 @@ class CheapestTokenSelectionStrategy:
             _normalized_cost(selected),
         )
         return selected
+
+
+DefaultTokenSelectionStrategy = CheapestTokenSelectionStrategy

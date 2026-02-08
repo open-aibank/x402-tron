@@ -9,7 +9,7 @@ import type {
   PaymentPayload,
   PaymentPermitContext,
 } from '../types/index.js';
-import { CheapestTokenSelectionStrategy } from './tokenSelection.js';
+import { DefaultTokenSelectionStrategy } from './tokenSelection.js';
 import type { TokenSelectionStrategy } from './tokenSelection.js';
 import { UnsupportedNetworkError } from '../errors.js';
 
@@ -177,7 +177,7 @@ export class X402Client {
       return this.tokenStrategy.select(candidates);
     }
 
-    return new CheapestTokenSelectionStrategy().select(candidates);
+    return new DefaultTokenSelectionStrategy().select(candidates);
   }
 
   /**

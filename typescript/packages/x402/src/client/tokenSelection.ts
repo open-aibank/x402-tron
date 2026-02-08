@@ -49,3 +49,5 @@ export class CheapestTokenSelectionStrategy implements TokenSelectionStrategy {
     return best;
   }
 }
+
+export const DefaultTokenSelectionStrategy = CheapestTokenSelectionStrategy;

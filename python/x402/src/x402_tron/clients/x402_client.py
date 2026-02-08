@@ -143,7 +143,7 @@ class X402Client:
         Select payment requirements from available options.
 
         Applies filters, then delegates to the configured token selection
-        strategy. Falls back to CheapestTokenSelectionStrategy if none is set.
+        strategy. Falls back to DefaultTokenSelectionStrategy if none is set.
 
         Args:
             accepts: Available payment requirements
@@ -182,9 +182,9 @@ class X402Client:
         if self._token_strategy:
             selected = await self._token_strategy.select(candidates)
         else:
-            from x402_tron.clients.token_selection import CheapestTokenSelectionStrategy
+            from x402_tron.clients.token_selection import DefaultTokenSelectionStrategy
 
-            selected = await CheapestTokenSelectionStrategy().select(candidates)
+            selected = await DefaultTokenSelectionStrategy().select(candidates)
 
         logger.info(
             "Selected payment requirement: network=%s, scheme=%s, amount=%s",
