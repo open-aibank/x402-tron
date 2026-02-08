@@ -5,6 +5,8 @@ Centralized configuration for contract addresses and network settings
 
 from typing import Dict
 
+from x402_tron.exceptions import UnsupportedNetworkError
+
 
 class NetworkConfig:
     """Network configuration for contract addresses and chain IDs"""
@@ -39,11 +41,11 @@ class NetworkConfig:
             Chain ID as integer
 
         Raises:
-            ValueError: If network is not supported
+            UnsupportedNetworkError: If network is not supported
         """
         chain_id = cls.CHAIN_IDS.get(network)
         if chain_id is None:
-            raise ValueError(f"Unsupported network: {network}")
+            raise UnsupportedNetworkError(f"Unsupported network: {network}")
         return chain_id
 
     @classmethod

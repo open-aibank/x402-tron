@@ -3,6 +3,8 @@
  * Centralized configuration for contract addresses and chain IDs
  */
 
+import { UnsupportedNetworkError } from './errors.js';
+
 /** Chain IDs for supported networks */
 export const CHAIN_IDS: Record<string, number> = {
   // TRON networks
@@ -27,7 +29,7 @@ export const TRON_ZERO_ADDRESS = 'T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb';
 export function getChainId(network: string): number {
   const chainId = CHAIN_IDS[network];
   if (chainId === undefined) {
-    throw new Error(`Unsupported network: ${network}`);
+    throw new UnsupportedNetworkError(`Unsupported network: ${network}`);
   }
   return chainId;
 }
@@ -51,7 +53,7 @@ export function isTronNetwork(network: string): boolean {
  */
 export function getZeroAddress(network: string): string {
   if (!isTronNetwork(network)) {
-    throw new Error(`Unsupported network: ${network}`);
+    throw new UnsupportedNetworkError(`Unsupported network: ${network}`);
   }
   return TRON_ZERO_ADDRESS;
 }

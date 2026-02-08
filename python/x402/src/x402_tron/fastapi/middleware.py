@@ -158,10 +158,14 @@ class X402Middleware:
                     logger = logging.getLogger(__name__)
                     logger.error(f"Payment settlement failed: {settle_result.error_reason}")
                     logger.error(f"Settlement result: {settle_result.model_dump(by_alias=True)}")
-                    return JSONResponse(
-                        content={"error": f"Settlement failed: {settle_result.error_reason}"},
-                        status_code=500,
-                    )
+                    error_content: dict[str, Any] = {
+                        "error": f"Settlement failed: {settle_result.error_reason}",
+                    }
+                    if settle_result.transaction:
+                        error_content["txHash"] = settle_result.transaction
+                    if settle_result.network:
+                        error_content["network"] = settle_result.network
+                    return JSONResponse(content=error_content, status_code=500)
 
                 # Verify transaction on-chain (required)
                 if settle_result.transaction:

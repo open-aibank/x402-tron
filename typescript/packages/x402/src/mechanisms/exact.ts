@@ -20,6 +20,7 @@ import {
   TronAddressConverter,
   TRON_ZERO_ADDRESS,
   paymentIdToBytes,
+  PermitValidationError,
 } from '../index.js';
 
 /**
@@ -44,7 +45,7 @@ export class ExactTronClientMechanism implements ClientMechanism {
   ): Promise<PaymentPayload> {
     const context = extensions?.paymentPermitContext;
     if (!context) {
-      throw new Error('paymentPermitContext is required');
+      throw new PermitValidationError('missing_context', 'paymentPermitContext is required');
     }
 
     const buyerAddress = this.signer.getAddress();

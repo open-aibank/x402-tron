@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Any
 from x402_tron.abi import get_payment_permit_eip712_types
 from x402_tron.address import AddressConverter
 from x402_tron.config import NetworkConfig
+from x402_tron.exceptions import PermitValidationError
 from x402_tron.mechanisms.client.base import ClientMechanism
 from x402_tron.types import (
     PAYMENT_ONLY,
@@ -79,7 +80,7 @@ class BaseExactClientMechanism(ClientMechanism):
 
         context = extensions.get("paymentPermitContext") if extensions else None
         if context is None:
-            raise ValueError("paymentPermitContext is required")
+            raise PermitValidationError("missing_context", "paymentPermitContext is required")
 
         permit = self._build_permit(requirements, context)
         self._logger.debug(f"Buyer address: {permit.buyer}, paymentId: {permit.meta.payment_id}")

@@ -5,6 +5,7 @@ X402Client - Core payment client for x402 protocol
 import logging
 from typing import TYPE_CHECKING, Any, Callable, Protocol
 
+from x402_tron.exceptions import UnsupportedNetworkError
 from x402_tron.types import (
     PaymentPayload,
     PaymentRequirements,
@@ -136,7 +137,7 @@ class X402Client:
 
         if not candidates:
             logger.error("No supported payment requirements found")
-            raise ValueError("No supported payment requirements found")
+            raise UnsupportedNetworkError("No supported payment requirements found")
 
         if self._token_strategy:
             selected = await self._token_strategy.select(candidates)
@@ -176,7 +177,9 @@ class X402Client:
         mechanism = self._find_mechanism(requirements.network)
         if mechanism is None:
             logger.error(f"No mechanism registered for network: {requirements.network}")
-            raise ValueError(f"No mechanism registered for network: {requirements.network}")
+            raise UnsupportedNetworkError(
+                f"No mechanism registered for network: {requirements.network}"
+            )
 
         logger.debug(f"Using mechanism: {mechanism.__class__.__name__}")
         payload = await mechanism.create_payment_payload(requirements, resource, extensions)

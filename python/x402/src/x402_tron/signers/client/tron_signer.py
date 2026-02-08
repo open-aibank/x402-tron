@@ -8,6 +8,7 @@ from typing import Any
 
 from x402_tron.abi import EIP712_DOMAIN_TYPE, ERC20_ABI, PAYMENT_PERMIT_PRIMARY_TYPE
 from x402_tron.config import NetworkConfig
+from x402_tron.exceptions import InsufficientAllowanceError, SignatureCreationError
 from x402_tron.signers.client.base import ClientSigner
 
 logger = logging.getLogger(__name__)
@@ -81,7 +82,7 @@ class TronClientSigner(ClientSigner):
             signature = pk.sign_msg(message)
             return signature.hex()
         except ImportError:
-            raise RuntimeError("tronpy is required for signing")
+            raise SignatureCreationError("tronpy is required for signing")
 
     async def sign_typed_data(
         self,
@@ -216,7 +217,9 @@ class TronClientSigner(ClientSigner):
         logger.info(f"Insufficient allowance ({current} < {amount}), requesting approval...")
         client = self._ensure_async_tron_client(network)
         if client is None:
-            raise RuntimeError("AsyncTron client required for approval")
+            raise InsufficientAllowanceError(
+                "AsyncTron client required for approval"
+            )
 
         try:
             from tronpy.keys import PrivateKey
@@ -245,8 +248,9 @@ class TronClientSigner(ClientSigner):
                 logger.warning(f"Approval failed: {result}")
             return success
         except Exception as e:
-            logger.error(f"Approval transaction failed: {e}")
-            return False
+            raise InsufficientAllowanceError(
+                f"Approval transaction failed: {e}"
+            ) from e
 
     def _get_spender_address(self, network: str) -> str:
         """Get payment permit contract address (spender)"""

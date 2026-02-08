@@ -11,6 +11,7 @@ import type {
 } from '../types/index.js';
 import { DefaultTokenSelectionStrategy } from './tokenSelection.js';
 import type { TokenSelectionStrategy } from './tokenSelection.js';
+import { UnsupportedNetworkError } from '../errors.js';
 
 /** Client mechanism interface */
 export interface ClientMechanism {
@@ -131,7 +132,7 @@ export class X402Client {
     candidates = candidates.filter(r => this.findMechanism(r.network) !== null);
 
     if (candidates.length === 0) {
-      throw new Error('No supported payment requirements found');
+      throw new UnsupportedNetworkError('No supported payment requirements found');
     }
 
     if (this.tokenStrategy) {
@@ -156,7 +157,7 @@ export class X402Client {
   ): Promise<PaymentPayload> {
     const mechanism = this.findMechanism(requirements.network);
     if (!mechanism) {
-      throw new Error(`No mechanism registered for network: ${requirements.network}`);
+      throw new UnsupportedNetworkError(`No mechanism registered for network: ${requirements.network}`);
     }
 
     return mechanism.createPaymentPayload(requirements, resource, extensions);
