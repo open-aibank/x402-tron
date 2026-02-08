@@ -133,6 +133,7 @@ class X402Client:
             signer = mechanism.get_signer()
             if signer is not None and hasattr(signer, "check_balance"):
                 from x402_tron.clients.token_selection import sufficient_balance_policy
+
                 self._policies.append(sufficient_balance_policy(signer))
                 self._has_balance_policy = True
 

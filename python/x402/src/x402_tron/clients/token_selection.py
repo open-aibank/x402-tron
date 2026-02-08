@@ -94,13 +94,19 @@ def sufficient_balance_policy(signer: "ClientSigner"):
             if balance >= needed:
                 logger.info(
                     "Token %s on %s: balance=%d >= needed=%d (OK)",
-                    req.asset, req.network, balance, needed,
+                    req.asset,
+                    req.network,
+                    balance,
+                    needed,
                 )
                 affordable.append(req)
             else:
                 logger.info(
                     "Token %s on %s: balance=%d < needed=%d (skipped)",
-                    req.asset, req.network, balance, needed,
+                    req.asset,
+                    req.network,
+                    balance,
+                    needed,
                 )
         return affordable if affordable else requirements
 

@@ -11,6 +11,9 @@ class MockClientMechanism:
     def scheme(self) -> str:
         return "exact"
 
+    def get_signer(self):
+        return None
+
     async def create_payment_payload(self, requirements, resource, extensions=None):
         return {"mock": "payload"}
 

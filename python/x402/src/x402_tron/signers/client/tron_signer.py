@@ -239,9 +239,7 @@ class TronClientSigner(ClientSigner):
         logger.info(f"Insufficient allowance ({current} < {amount}), requesting approval...")
         client = self._ensure_async_tron_client(network)
         if client is None:
-            raise InsufficientAllowanceError(
-                "AsyncTron client required for approval"
-            )
+            raise InsufficientAllowanceError("AsyncTron client required for approval")
 
         try:
             from tronpy.keys import PrivateKey
@@ -270,9 +268,7 @@ class TronClientSigner(ClientSigner):
                 logger.warning(f"Approval failed: {result}")
             return success
         except Exception as e:
-            raise InsufficientAllowanceError(
-                f"Approval transaction failed: {e}"
-            ) from e
+            raise InsufficientAllowanceError(f"Approval transaction failed: {e}") from e
 
     def _get_spender_address(self, network: str) -> str:
         """Get payment permit contract address (spender)"""
