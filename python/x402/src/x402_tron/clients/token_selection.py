@@ -7,6 +7,7 @@ by token decimals to compare real value (lower is better for the payer).
 """
 
 import logging
+from decimal import Decimal
 from typing import Protocol, runtime_checkable
 
 from x402_tron.tokens import TokenRegistry
@@ -48,17 +49,17 @@ def _get_decimals(req: PaymentRequirements) -> int:
     return token.decimals if token else 6
 
 
-def _normalized_cost(req: PaymentRequirements) -> float:
+def _normalized_cost(req: PaymentRequirements) -> Decimal:
     """Calculate total cost normalized to human-readable units.
 
     e.g. 1_000_000 raw with 6 decimals  -> 1.0
          1_000_000_000_000_000_000 raw with 18 decimals -> 1.0
     """
     decimals = _get_decimals(req)
-    return int(req.amount) / (10**decimals)
+    return Decimal(str(req.amount)) / Decimal(10) ** decimals
 
 
-class DefaultTokenSelectionStrategy:
+class CheapestTokenSelectionStrategy:
     """Default strategy: normalize by token decimals, pick cheapest.
 
     Compares real value (amount / 10^decimals) so that tokens with
@@ -82,5 +83,4 @@ class DefaultTokenSelectionStrategy:
         return selected
 
 
-# Alias for backward compatibility
-CheapestFirstStrategy = DefaultTokenSelectionStrategy
+DefaultTokenSelectionStrategy = CheapestTokenSelectionStrategy

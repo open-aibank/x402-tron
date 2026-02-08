@@ -115,54 +115,55 @@ class X402Server:
 
     async def build_payment_requirements(
         self,
-        config: ResourceConfig,
-    ) -> PaymentRequirements:
-        """Build payment requirements from resource configuration.
+        configs: list[ResourceConfig],
+    ) -> list[PaymentRequirements]:
+        """Build payment requirements from resource configurations.
 
         Args:
-            config: Resource configuration
+            configs: List of resource configurations
 
         Returns:
-            PaymentRequirements
+            List of PaymentRequirements with fee info attached
         """
-        mechanism = self._mechanisms.get(config.network)
-        if mechanism is None:
-            raise ValueError(f"No mechanism registered for network: {config.network}")
+        requirements_list: list[PaymentRequirements] = []
+        for config in configs:
+            mechanism = self._mechanisms.get(config.network)
+            if mechanism is None:
+                raise ValueError(f"No mechanism registered for network: {config.network}")
 
-        asset_info = await mechanism.parse_price(config.price, config.network)
+            asset_info = await mechanism.parse_price(config.price, config.network)
 
-        requirements = PaymentRequirements(
-            scheme=config.scheme,
-            network=config.network,
-            amount=str(asset_info["amount"]),
-            asset=asset_info["asset"],
-            payTo=config.pay_to,
-            maxTimeoutSeconds=config.valid_for,
-        )
+            requirements = PaymentRequirements(
+                scheme=config.scheme,
+                network=config.network,
+                amount=str(asset_info["amount"]),
+                asset=asset_info["asset"],
+                payTo=config.pay_to,
+                maxTimeoutSeconds=config.valid_for,
+            )
 
-        requirements = await mechanism.enhance_payment_requirements(
-            requirements, config.delivery_mode
-        )
+            requirements = await mechanism.enhance_payment_requirements(
+                requirements, config.delivery_mode
+            )
+            requirements_list.append(requirements)
 
         if self._facilitator:
             facilitator = self._facilitator
-            # Fetch and cache facilitator address for use in create_payment_required_response
             await facilitator.fetch_facilitator_address()
 
-            # Get fee quote from facilitator (fee is required)
-            fee_quote = await facilitator.fee_quote(requirements)
-            if fee_quote:
-                if requirements.extra is None:
-                    from x402_tron.types import PaymentRequirementsExtra
+            fee_quotes = await facilitator.fee_quote(requirements_list)
+            for req, fee_quote in zip(requirements_list, fee_quotes):
+                if fee_quote:
+                    if req.extra is None:
+                        from x402_tron.types import PaymentRequirementsExtra
 
-                    requirements.extra = PaymentRequirementsExtra()
-                # Set facilitatorId in the fee info
-                fee_quote.fee.facilitator_id = facilitator.facilitator_id
-                requirements.extra.fee = fee_quote.fee
+                        req.extra = PaymentRequirementsExtra()
+                    fee_quote.fee.facilitator_id = facilitator.facilitator_id
+                    req.extra.fee = fee_quote.fee
         else:
             raise ValueError("Facilitator is not set")
 
-        return requirements
+        return requirements_list
 
     def create_payment_required_response(
         self,

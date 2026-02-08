@@ -25,10 +25,10 @@ class FacilitatorMechanism(Protocol):
 
     async def fee_quote(
         self,
-        accept: PaymentRequirements,
+        accepts: list[PaymentRequirements],
         context: dict[str, Any] | None = None,
-    ) -> FeeQuoteResponse:
-        """Calculate fee quote"""
+    ) -> list[FeeQuoteResponse]:
+        """Calculate fee quotes for a batch of payment requirements."""
         ...
 
     async def verify(
@@ -109,23 +109,28 @@ class X402Facilitator:
 
     async def fee_quote(
         self,
-        accept: PaymentRequirements,
+        accepts: list[PaymentRequirements],
         context: dict[str, Any] | None = None,
-    ) -> FeeQuoteResponse:
+    ) -> list[FeeQuoteResponse]:
         """
-        Calculate fee quote for payment requirements.
+        Calculate fee quotes for a list of payment requirements.
 
         Args:
-            accept: Payment requirements
+            accepts: List of payment requirements
             context: Optional payment context
 
         Returns:
-            FeeQuoteResponse with fee information
+            List of FeeQuoteResponse, one per input requirement
         """
-        mechanism = self._find_mechanism(accept.network, accept.scheme)
-        if mechanism is None:
-            raise ValueError(f"No mechanism for network={accept.network}, scheme={accept.scheme}")
-        return await mechanism.fee_quote(accept, context)
+        results: list[FeeQuoteResponse] = []
+        for accept in accepts:
+            mechanism = self._find_mechanism(accept.network, accept.scheme)
+            if mechanism is None:
+                raise ValueError(
+                    f"No mechanism for network={accept.network}, scheme={accept.scheme}"
+                )
+            results.append(await mechanism.fee_quote(accept, context))
+        return results
 
     async def verify(
         self,

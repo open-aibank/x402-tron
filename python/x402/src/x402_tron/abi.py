@@ -22,6 +22,15 @@ EIP712_DOMAIN_TYPE = [
 # ERC20 Token ABI
 ERC20_ABI: List[dict[str, Any]] = [
     {
+        "name": "balanceOf",
+        "type": "function",
+        "stateMutability": "view",
+        "inputs": [
+            {"name": "account", "type": "address"},
+        ],
+        "outputs": [{"name": "", "type": "uint256"}],
+    },
+    {
         "name": "allowance",
         "type": "function",
         "stateMutability": "view",

@@ -4,6 +4,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from x402_tron.mechanisms.facilitator.tron_exact import ExactTronFacilitatorMechanism
+from x402_tron.tokens import TokenInfo, TokenRegistry
 from x402_tron.types import (
     Fee,
     Payment,
@@ -14,6 +15,18 @@ from x402_tron.types import (
     PermitMeta,
     ResourceInfo,
 )
+
+
+@pytest.fixture(autouse=True)
+def _register_test_token():
+    """Register fake test token so _get_base_fee can resolve it."""
+    TokenRegistry.register_token(
+        "tron:nile",
+        TokenInfo(address="TTestUSDTAddress", decimals=6, name="Test USDT", symbol="USDT"),
+    )
+    yield
+    # cleanup: remove the test token
+    TokenRegistry._tokens.get("tron:nile", {}).pop("USDT", None)
 
 
 @pytest.fixture
@@ -163,7 +176,7 @@ class TestFacilitatorSettle:
     @pytest.mark.anyio
     async def test_settle_fee_amount_mismatch(self, mock_signer, valid_payload, nile_requirements):
         valid_payload.payload.payment_permit.fee.fee_amount = "0"
-        mechanism = ExactTronFacilitatorMechanism(mock_signer)
+        mechanism = ExactTronFacilitatorMechanism(mock_signer, base_fee={"USDT": 1_000_000})
 
         result = await mechanism.settle(valid_payload, nile_requirements)
 

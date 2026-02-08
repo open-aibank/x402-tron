@@ -136,7 +136,7 @@ class X402Middleware:
                         status_code=400,
                     )
 
-                requirements = await self._server.build_payment_requirements(config)
+                requirements = (await self._server.build_payment_requirements([config]))[0]
 
                 verify_result = await self._server.verify_payment(payload, requirements)
                 if not verify_result.is_valid:
@@ -158,10 +158,14 @@ class X402Middleware:
                     logger = logging.getLogger(__name__)
                     logger.error(f"Payment settlement failed: {settle_result.error_reason}")
                     logger.error(f"Settlement result: {settle_result.model_dump(by_alias=True)}")
-                    return JSONResponse(
-                        content={"error": f"Settlement failed: {settle_result.error_reason}"},
-                        status_code=500,
-                    )
+                    error_content: dict[str, Any] = {
+                        "error": f"Settlement failed: {settle_result.error_reason}",
+                    }
+                    if settle_result.transaction:
+                        error_content["txHash"] = settle_result.transaction
+                    if settle_result.network:
+                        error_content["network"] = settle_result.network
+                    return JSONResponse(content=error_content, status_code=500)
 
                 # Verify transaction on-chain (required)
                 if settle_result.transaction:
@@ -269,10 +273,7 @@ class X402Middleware:
         error: str | None = None,
     ) -> JSONResponse:
         """Return 402 payment required response"""
-        requirements_list = []
-        for cfg in configs:
-            req = await self._server.build_payment_requirements(cfg)
-            requirements_list.append(req)
+        requirements_list = await self._server.build_payment_requirements(configs)
 
         payment_required = self._server.create_payment_required_response(
             requirements=requirements_list,
