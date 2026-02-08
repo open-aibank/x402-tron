@@ -42,8 +42,8 @@ export class SufficientBalancePolicy implements PaymentPolicy {
       const token = findByAddress(req.network, req.asset);
       const symbol = token?.symbol ?? req.asset.slice(0, 8);
       const divisor = 10 ** decimals;
-      const hBalance = (Number(balance) / divisor).toFixed(6);
-      const hNeeded = (Number(needed) / divisor).toFixed(6);
+      const hBalance = (Number(balance) / divisor).toFixed(decimals);
+      const hNeeded = (Number(needed) / divisor).toFixed(decimals);
       if (balance >= needed) {
         console.log(
           `[x402] ${symbol} on ${req.network}: balance=${hBalance} >= needed=${hNeeded} (OK)`

@@ -54,9 +54,10 @@ class SufficientBalancePolicy:
             divisor = 10**decimals
             h_balance = balance / divisor
             h_needed = needed / divisor
+            fmt = f"%.{decimals}f"
             if balance >= needed:
                 logger.info(
-                    "%s on %s: balance=%.6f >= needed=%.6f (OK)",
+                    f"%s on %s: balance={fmt} >= needed={fmt} (OK)",
                     symbol,
                     req.network,
                     h_balance,
@@ -65,7 +66,7 @@ class SufficientBalancePolicy:
                 affordable.append(req)
             else:
                 logger.info(
-                    "%s on %s: balance=%.6f < needed=%.6f (skipped)",
+                    f"%s on %s: balance={fmt} < needed={fmt} (skipped)",
                     symbol,
                     req.network,
                     h_balance,
