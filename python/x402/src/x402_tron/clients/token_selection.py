@@ -94,7 +94,7 @@ def sufficient_balance_policy(signer: "ClientSigner"):
             decimals = _get_decimals(req)
             token_info = TokenRegistry.find_by_address(req.network, req.asset)
             symbol = token_info.symbol if token_info else req.asset[:8]
-            divisor = 10 ** decimals
+            divisor = 10**decimals
             h_balance = balance / divisor
             h_needed = needed / divisor
             if balance >= needed:
