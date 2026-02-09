@@ -19,6 +19,7 @@ DEFAULT_VALIDITY_SECONDS = 3600
 # Data structures
 # ---------------------------------------------------------------------------
 
+
 class TransferAuthorization(BaseModel):
     """TransferWithAuthorization parameters"""
 
@@ -138,6 +139,7 @@ def build_eip712_domain(
 # ---------------------------------------------------------------------------
 # Utility helpers
 # ---------------------------------------------------------------------------
+
 
 def create_nonce() -> str:
     """Generate a random 32-byte nonce (0x-prefixed hex)."""

@@ -35,6 +35,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 class NativeExactTronFacilitatorMechanism(FacilitatorMechanism):
     """TransferWithAuthorization facilitator mechanism for TRON.
 
@@ -138,9 +139,7 @@ class NativeExactTronFacilitatorMechanism(FacilitatorMechanism):
         if v < 27:
             v += 27
 
-        nonce_bytes = bytes.fromhex(
-            auth.nonce[2:] if auth.nonce.startswith("0x") else auth.nonce
-        )
+        nonce_bytes = bytes.fromhex(auth.nonce[2:] if auth.nonce.startswith("0x") else auth.nonce)
 
         converter = self._converter
         token_address = requirements.asset
@@ -255,7 +254,9 @@ class NativeExactTronFacilitatorMechanism(FacilitatorMechanism):
         token_version = token_info.version if token_info else "1"
 
         domain = build_eip712_domain(
-            token_name, token_version, chain_id,
+            token_name,
+            token_version,
+            chain_id,
             converter.to_evm_format(token_address),
         )
         message = build_eip712_message(auth, converter.to_evm_format)

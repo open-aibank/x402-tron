@@ -100,8 +100,10 @@ class TestCreatePaymentPayload:
         p1 = await mechanism.create_payment_payload(nile_requirements, "https://a.com")
         p2 = await mechanism.create_payment_payload(nile_requirements, "https://b.com")
 
-        assert p1.extensions["transferAuthorization"]["nonce"] != \
-               p2.extensions["transferAuthorization"]["nonce"]
+        assert (
+            p1.extensions["transferAuthorization"]["nonce"]
+            != p2.extensions["transferAuthorization"]["nonce"]
+        )
 
     @pytest.mark.anyio
     async def test_sign_typed_data_called(self, mock_signer, nile_requirements):
@@ -133,7 +135,7 @@ class TestCreatePaymentPayload:
         mechanism = NativeExactTronClientMechanism(mock_signer)
         await mechanism.create_payment_payload(nile_requirements, "https://example.com")
 
-        assert not hasattr(mock_signer, "check_allowance") or \
-               not mock_signer.check_allowance.called
-        assert not hasattr(mock_signer, "ensure_allowance") or \
-               not mock_signer.ensure_allowance.called
+        assert not hasattr(mock_signer, "check_allowance") or not mock_signer.check_allowance.called
+        assert (
+            not hasattr(mock_signer, "ensure_allowance") or not mock_signer.ensure_allowance.called
+        )

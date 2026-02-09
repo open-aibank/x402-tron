@@ -51,8 +51,15 @@ def nile_requirements():
     )
 
 
-def _make_payload(nile_requirements, nonce=None, valid_after=None, valid_before=None,
-                  from_addr="TTestBuyerAddress", to_addr=None, value=None):
+def _make_payload(
+    nile_requirements,
+    nonce=None,
+    valid_after=None,
+    valid_before=None,
+    from_addr="TTestBuyerAddress",
+    to_addr=None,
+    value=None,
+):
     now = int(time.time())
     return PaymentPayload(
         x402Version=2,
@@ -232,9 +239,7 @@ class TestSettle:
 
     @pytest.mark.anyio
     async def test_settle_on_chain_failure(self, mock_signer, nile_requirements):
-        mock_signer.wait_for_transaction_receipt = AsyncMock(
-            return_value={"status": "failed"}
-        )
+        mock_signer.wait_for_transaction_receipt = AsyncMock(return_value={"status": "failed"})
         mechanism = NativeExactTronFacilitatorMechanism(mock_signer)
         payload = _make_payload(nile_requirements)
         result = await mechanism.settle(payload, nile_requirements)

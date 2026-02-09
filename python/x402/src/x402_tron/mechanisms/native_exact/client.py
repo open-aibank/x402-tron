@@ -83,15 +83,19 @@ class NativeExactTronClientMechanism(ClientMechanism):
         # Build EIP-712 domain and message from authorization
         chain_id = NetworkConfig.get_chain_id(requirements.network)
         domain = build_eip712_domain(
-            token_name, token_version, chain_id,
+            token_name,
+            token_version,
+            chain_id,
             converter.to_evm_format(token_address),
         )
         message = build_eip712_message(authorization, converter.to_evm_format)
 
         logger.info(
-            "[NATIVE-EXACT] Signing TransferWithAuthorization: "
-            "from=%s, to=%s, value=%s, token=%s",
-            from_addr, to_addr, value, token_address,
+            "[NATIVE-EXACT] Signing TransferWithAuthorization: from=%s, to=%s, value=%s, token=%s",
+            from_addr,
+            to_addr,
+            value,
+            token_address,
         )
 
         signature = await self._signer.sign_typed_data(
