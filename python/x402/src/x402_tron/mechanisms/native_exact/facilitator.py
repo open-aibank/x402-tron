@@ -180,7 +180,8 @@ class NativeExactTronFacilitatorMechanism(FacilitatorMechanism):
         receipt = await self._signer.wait_for_transaction_receipt(
             tx_hash, network=requirements.network
         )
-        tx_status = receipt.get("status", "").lower() if isinstance(receipt.get("status"), str) else receipt.get("status")
+        raw_status = receipt.get("status")
+        tx_status = raw_status.lower() if isinstance(raw_status, str) else raw_status
         if tx_status == "failed" or tx_status == "0" or tx_status == 0:
             return SettleResponse(
                 success=False,

@@ -9,7 +9,6 @@ from typing import Any, List
 
 from pydantic import BaseModel, Field
 
-
 SCHEME_NATIVE_EXACT = "native_exact"
 
 # Default validity period (1 hour)
