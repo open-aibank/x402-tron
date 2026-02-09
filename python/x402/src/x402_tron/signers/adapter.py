@@ -11,8 +11,7 @@ from typing import Any
 
 
 class TronProviderAdapter:
-    """Adapt agent-wallet's ``TronProvider`` (or ``FlashProvider``) to a
-    minimal read-only interface.
+    """Adapt agent-wallet's ``TronProvider`` to a minimal read-only interface.
 
     Only reads ``address`` via the provider's ``get_account_info()`` method.
     Private keys are **never** extracted — signing is handled by the

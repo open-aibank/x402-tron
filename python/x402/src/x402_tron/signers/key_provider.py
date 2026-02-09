@@ -15,7 +15,7 @@ from typing import Protocol, runtime_checkable
 class KeyProvider(Protocol):
     """Minimal interface that a provider backend must satisfy.
 
-    agent-wallet's TronProvider / FlashProvider can be adapted via
+    agent-wallet's TronProvider can be adapted via
     ``TronProviderAdapter``.
     """
 

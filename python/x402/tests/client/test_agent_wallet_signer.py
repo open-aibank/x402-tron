@@ -1,7 +1,7 @@
 """
 Tests for AgentWalletClientSigner and AgentWalletFacilitatorSigner.
 
-Signer takes a provider directly (TronProvider / FlashProvider).
+Signer takes a provider directly (TronProvider).
 Provider handles keystore internally — signer doesn't know about it.
 Private keys are never extracted — all signing goes through the provider wrapper.
 """

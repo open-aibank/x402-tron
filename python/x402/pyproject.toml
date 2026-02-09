@@ -37,14 +37,19 @@ dev-dependencies = [
     "ruff>=0.1.0",
 ]
 
+[tool.uv.sources]
+agent-wallet = { git = "https://github.com/bankofai/agent-wallet.git", branch = "dev", subdirectory = "python" }
+
 [project.optional-dependencies]
 tron = ["tronpy>=0.4.0"]
 fastapi = ["fastapi>=0.100.0"]
 flask = ["flask>=2.0.0"]
+agent-wallet = ["agent-wallet"]
 all = [
     "tronpy>=0.4.0",
     "fastapi>=0.100.0",
     "flask>=2.0.0",
+    "agent-wallet",
 ]
 dev = [
     "pytest>=7.0.0",
