@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from x402_tron.mechanisms.facilitator.tron_exact import ExactTronFacilitatorMechanism
+from x402_tron.mechanisms.tron.exact import ExactTronFacilitatorMechanism
 from x402_tron.tokens import TokenInfo, TokenRegistry
 from x402_tron.types import (
     Fee,

@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from x402_tron.mechanisms.client.evm_exact import ExactEvmClientMechanism
+from x402_tron.mechanisms.evm.exact import ExactEvmClientMechanism
 from x402_tron.types import FeeInfo, PaymentRequirements, PaymentRequirementsExtra
 
 

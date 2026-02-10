@@ -4,7 +4,7 @@ Tests for native_exact types and helpers.
 
 import time
 
-from x402_tron.mechanisms.native_exact.types import (
+from x402_tron.mechanisms._native_exact_base.types import (
     SCHEME_NATIVE_EXACT,
     TRANSFER_AUTH_EIP712_TYPES,
     TRANSFER_AUTH_PRIMARY_TYPE,

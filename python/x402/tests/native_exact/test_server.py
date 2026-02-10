@@ -4,8 +4,8 @@ Tests for NativeExactEvmServerMechanism.
 
 import pytest
 
-from x402_tron.mechanisms.native_exact.evm import NativeExactEvmServerMechanism
-from x402_tron.mechanisms.native_exact.types import SCHEME_NATIVE_EXACT
+from x402_tron.mechanisms.evm.native_exact import NativeExactEvmServerMechanism
+from x402_tron.mechanisms._native_exact_base.types import SCHEME_NATIVE_EXACT
 from x402_tron.tokens import TokenInfo, TokenRegistry
 from x402_tron.types import PaymentRequirements
 

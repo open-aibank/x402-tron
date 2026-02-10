@@ -7,8 +7,8 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from x402_tron.mechanisms.native_exact.tron import NativeExactTronFacilitatorMechanism
-from x402_tron.mechanisms.native_exact.types import SCHEME_NATIVE_EXACT
+from x402_tron.mechanisms.tron.native_exact import NativeExactTronFacilitatorMechanism
+from x402_tron.mechanisms._native_exact_base.types import SCHEME_NATIVE_EXACT
 from x402_tron.tokens import TokenInfo, TokenRegistry
 from x402_tron.types import (
     PaymentPayload,

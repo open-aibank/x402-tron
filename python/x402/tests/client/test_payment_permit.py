@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from x402_tron.mechanisms.client.tron_exact import ExactTronClientMechanism
+from x402_tron.mechanisms.tron.exact import ExactTronClientMechanism
 from x402_tron.types import FeeInfo, PaymentRequirements, PaymentRequirementsExtra
 
 

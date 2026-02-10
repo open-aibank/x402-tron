@@ -4,7 +4,7 @@ Tests for ExactEvmServerMechanism - EVM exact payment scheme server.
 
 import pytest
 
-from x402_tron.mechanisms.server.evm_exact import ExactEvmServerMechanism
+from x402_tron.mechanisms.evm.exact import ExactEvmServerMechanism
 from x402_tron.tokens import TokenInfo, TokenRegistry
 from x402_tron.types import PaymentRequirements
 

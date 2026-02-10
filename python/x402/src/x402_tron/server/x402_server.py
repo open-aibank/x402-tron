@@ -100,7 +100,7 @@ class X402Server:
 
     def _register_default_tron_mechanisms(self) -> None:
         """Register default TRON mechanisms for all networks"""
-        from x402_tron.mechanisms.server import ExactTronServerMechanism
+        from x402_tron.mechanisms.tron.exact import ExactTronServerMechanism
 
         tron_mechanism = ExactTronServerMechanism()
         self.register(NetworkConfig.TRON_MAINNET, tron_mechanism)
