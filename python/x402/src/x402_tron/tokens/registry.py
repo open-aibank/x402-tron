@@ -40,6 +40,12 @@ class TokenRegistry:
                 name="USD Coin",
                 symbol="USDC",
             ),
+            "DHLU": TokenInfo(
+                address="0x375cADdd2cB68cE82e3D9B075D551067a7b4B816",
+                decimals=6,
+                name="DA HULU",
+                symbol="DHLU",
+            ),
         },
         # TRON Networks
         "tron:mainnet": {

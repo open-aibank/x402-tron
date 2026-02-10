@@ -23,6 +23,12 @@ const TOKENS: Record<string, Record<string, TokenInfo>> = {
       name: 'USD Coin',
       symbol: 'USDC',
     },
+    DHLU: {
+      address: '0x375cADdd2cB68cE82e3D9B075D551067a7b4B816',
+      decimals: 6,
+      name: 'DA HULU',
+      symbol: 'DHLU',
+    },
   },
   'tron:mainnet': {
     USDT: {
