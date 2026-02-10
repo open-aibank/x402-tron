@@ -15,6 +15,7 @@ import {
   PAYMENT_PERMIT_TYPES,
   getChainId,
   getPaymentPermitAddress,
+  EVM_ZERO_ADDRESS,
   EvmAddressConverter,
   ZERO_ADDRESS_HEX,
   PermitValidationError,
@@ -50,7 +51,7 @@ export class ExactEvmClientMechanism implements ClientMechanism {
     }
 
     const buyerAddress = this.signer.getAddress();
-    const zeroAddress = ZERO_ADDRESS_HEX;
+    const zeroAddress = EVM_ZERO_ADDRESS;
 
     const permit: PaymentPermit = {
       meta: {

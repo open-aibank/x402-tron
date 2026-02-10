@@ -17,8 +17,8 @@ export * from './address.js';
 // HTTP Client
 export * from './http/client.js';
 
-// TRON Mechanism
-export * from './mechanisms/exact.js';
+// Mechanisms
+export * from './mechanisms/index.js';
 
 // EVM Mechanism
 export * from './mechanisms/exactEvm.js';

@@ -42,10 +42,22 @@ export const PAYMENT_PERMIT_ADDRESSES: Record<string, string> = {
 /** Zero address for TRON */
 export const TRON_ZERO_ADDRESS = 'T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb';
 
+/** Zero address for EVM */
+export const EVM_ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+
 /**
  * Get chain ID for network
  */
 export function getChainId(network: string): number {
+  // EVM networks encode chain ID directly in the identifier
+  if (network.startsWith('eip155:')) {
+    const id = parseInt(network.split(':')[1], 10);
+    if (isNaN(id)) {
+      throw new UnsupportedNetworkError(`Invalid EVM network: ${network}`);
+    }
+    return id;
+  }
+
   const chainId = CHAIN_IDS[network];
   if (chainId === undefined) {
     throw new UnsupportedNetworkError(`Unsupported network: ${network}`);
@@ -57,12 +69,11 @@ export function getChainId(network: string): number {
  * Get PaymentPermit contract address for network
  */
 export function getPaymentPermitAddress(network: string): string {
-  const address = PAYMENT_PERMIT_ADDRESSES[network];
-  if (address) return address;
-
-  return isTronNetwork(network)
-    ? TRON_ZERO_ADDRESS
-    : '0x0000000000000000000000000000000000000000';
+  const addr = PAYMENT_PERMIT_ADDRESSES[network];
+  if (addr) return addr;
+  // EVM fallback: zero address (not yet deployed)
+  if (network.startsWith('eip155:')) return EVM_ZERO_ADDRESS;
+  return TRON_ZERO_ADDRESS;
 }
 
 /**
@@ -73,11 +84,17 @@ export function isTronNetwork(network: string): boolean {
 }
 
 /**
- * Get zero address for TRON network
+ * Check if network is EVM
+ */
+export function isEvmNetwork(network: string): boolean {
+  return network.startsWith('eip155:');
+}
+
+/**
+ * Get zero address for network
  */
 export function getZeroAddress(network: string): string {
-  if (!isTronNetwork(network)) {
-    throw new UnsupportedNetworkError(`Unsupported network: ${network}`);
-  }
-  return TRON_ZERO_ADDRESS;
+  if (isEvmNetwork(network)) return EVM_ZERO_ADDRESS;
+  if (isTronNetwork(network)) return TRON_ZERO_ADDRESS;
+  throw new UnsupportedNetworkError(`Unsupported network: ${network}`);
 }

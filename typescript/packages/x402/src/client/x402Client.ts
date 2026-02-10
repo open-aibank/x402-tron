@@ -163,7 +163,7 @@ export class X402Client {
       candidates = candidates.filter(r => BigInt(r.amount) <= max);
     }
 
-    candidates = candidates.filter(r => this.findMechanism(r.network) !== null);
+    candidates = candidates.filter(r => this.findMechanism(r.scheme, r.network) !== null);
 
     for (const policy of this.policies) {
       candidates = await policy.apply(candidates);
@@ -193,9 +193,11 @@ export class X402Client {
     resource: string,
     extensions?: { paymentPermitContext?: PaymentPermitContext }
   ): Promise<PaymentPayload> {
-    const mechanism = this.findMechanism(requirements.network);
+    const mechanism = this.findMechanism(requirements.scheme, requirements.network);
     if (!mechanism) {
-      throw new UnsupportedNetworkError(`No mechanism registered for network: ${requirements.network}`);
+      throw new UnsupportedNetworkError(
+        `No mechanism registered for scheme=${requirements.scheme}, network=${requirements.network}`
+      );
     }
 
     return mechanism.createPaymentPayload(requirements, resource, extensions);
@@ -224,11 +226,11 @@ export class X402Client {
   }
 
   /**
-   * Find mechanism for network
+   * Find mechanism for scheme and network
    */
-  private findMechanism(network: string): ClientMechanism | null {
+  private findMechanism(scheme: string, network: string): ClientMechanism | null {
     for (const entry of this.mechanisms) {
-      if (this.matchPattern(entry.pattern, network)) {
+      if (entry.mechanism.scheme() === scheme && this.matchPattern(entry.pattern, network)) {
         return entry.mechanism;
       }
     }

@@ -47,7 +47,7 @@ class NetworkConfig:
         """Get chain ID for network
 
         Args:
-            network: Network identifier (e.g., "tron:nile", "tron:mainnet")
+            network: Network identifier (e.g., "tron:nile", "eip155:8453")
 
         Returns:
             Chain ID as integer
@@ -55,6 +55,13 @@ class NetworkConfig:
         Raises:
             UnsupportedNetworkError: If network is not supported
         """
+        # EVM networks encode chain ID directly in the identifier
+        if network.startswith("eip155:"):
+            try:
+                return int(network.split(":", 1)[1])
+            except (ValueError, IndexError):
+                raise UnsupportedNetworkError(f"Invalid EVM network: {network}")
+
         chain_id = cls.CHAIN_IDS.get(network)
         if chain_id is None:
             raise UnsupportedNetworkError(f"Unsupported network: {network}")
@@ -65,9 +72,15 @@ class NetworkConfig:
         """Get PaymentPermit contract address for network
 
         Args:
-            network: Network identifier (e.g., "tron:nile", "tron:mainnet")
+            network: Network identifier (e.g., "tron:nile", "eip155:8453")
 
         Returns:
-            Contract address in Base58 format
+            Contract address (Base58 for TRON, 0x-hex for EVM)
         """
-        return cls.PAYMENT_PERMIT_ADDRESSES.get(network, "T0000000000000000000000000000000")
+        addr = cls.PAYMENT_PERMIT_ADDRESSES.get(network)
+        if addr is not None:
+            return addr
+        # EVM fallback: zero address
+        if network.startswith("eip155:"):
+            return "0x0000000000000000000000000000000000000000"
+        return "T0000000000000000000000000000000"
