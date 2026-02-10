@@ -112,7 +112,6 @@ class PaymentPermitContext(BaseModel):
     """Payment permit context from extensions"""
 
     meta: PaymentPermitContextMeta
-    caller: Optional[str] = None  # Optional caller address, zero address allows any caller
 
 
 class ResourceInfo(BaseModel):
