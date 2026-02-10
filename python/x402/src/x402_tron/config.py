@@ -38,8 +38,7 @@ class NetworkConfig:
         "tron:mainnet": "TT8rEWbCoNX7vpEUauxb7rWJsTgs8vDLAn",
         "tron:shasta": "TR2XninQ3jsvRRLGTifFyUHTBysffooUjt",
         "tron:nile": "TFxDcGvS7zfQrS1YzcCMp673ta2NHHzsiH",
-        # Add generic EVM PaymentPermit address if known, or leave as placeholder
-        # "eip155:1": "0x...",
+        # TODO: Add BSC PaymentPermit address here
     }
 
     @classmethod
