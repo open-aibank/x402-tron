@@ -67,6 +67,7 @@ class FeeInfo(BaseModel):
     facilitator_id: Optional[str] = Field(None, alias="facilitatorId")
     fee_to: str = Field(alias="feeTo")
     fee_amount: str = Field(alias="feeAmount")
+    caller: Optional[str] = None
 
     class Config:
         populate_by_name = True
@@ -112,7 +113,6 @@ class PaymentPermitContext(BaseModel):
     """Payment permit context from extensions"""
 
     meta: PaymentPermitContextMeta
-    caller: Optional[str] = None  # Optional caller address, zero address allows any caller
 
 
 class ResourceInfo(BaseModel):

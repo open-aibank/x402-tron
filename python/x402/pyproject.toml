@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "x402-tron"
-version = "0.2.1"
+version = "0.3.0"
 description = "x402 Payment Protocol SDK for Python"
 readme = "README.md"
 license = {text = "MIT"}

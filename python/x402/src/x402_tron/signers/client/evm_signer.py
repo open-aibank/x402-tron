@@ -5,10 +5,11 @@ EvmClientSigner - EVM client signer implementation
 import logging
 from typing import Any
 
-from x402_tron.abi import EIP712_DOMAIN_TYPE, ERC20_ABI, PAYMENT_PERMIT_PRIMARY_TYPE
+from x402_tron.abi import ERC20_ABI, PAYMENT_PERMIT_PRIMARY_TYPE
 from x402_tron.config import NetworkConfig
 from x402_tron.exceptions import InsufficientAllowanceError, SignatureCreationError
 from x402_tron.signers.client.base import ClientSigner
+from x402_tron.signers.utils import _eip712_domain_type_from_keys, resolve_provider_uri
 
 logger = logging.getLogger(__name__)
 
@@ -50,9 +51,12 @@ class EvmClientSigner(ClientSigner):
 
         if net not in self._async_web3_clients:
             from web3 import AsyncHTTPProvider, AsyncWeb3
+            from web3.middleware import ExtraDataToPOAMiddleware
 
-            provider_uri = net if net.startswith(("http", "ws")) else None
-            self._async_web3_clients[net] = AsyncWeb3(AsyncHTTPProvider(provider_uri))
+            provider_uri = resolve_provider_uri(net)
+            w3 = AsyncWeb3(AsyncHTTPProvider(provider_uri))
+            w3.middleware_onion.inject(ExtraDataToPOAMiddleware, layer=0)
+            self._async_web3_clients[net] = w3
 
         return self._async_web3_clients[net]
 
@@ -86,8 +90,12 @@ class EvmClientSigner(ClientSigner):
                 else list(types.keys())[-1]
             )
 
+            # Build EIP712Domain type dynamically from domain keys
+            # so it works for both exact (no version) and native_exact (with version)
+            domain_type = _eip712_domain_type_from_keys(domain)
+
             full_data = {
-                "types": {"EIP712Domain": EIP712_DOMAIN_TYPE, **types},
+                "types": {"EIP712Domain": domain_type, **types},
                 "domain": domain,
                 "primaryType": primary_type,
                 "message": message,
@@ -167,7 +175,7 @@ class EvmClientSigner(ClientSigner):
             )
 
             signed_tx = w3.eth.account.sign_transaction(tx, private_key=self._private_key)
-            tx_hash = await w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+            tx_hash = await w3.eth.send_raw_transaction(signed_tx.raw_transaction)
             receipt = await w3.eth.wait_for_transaction_receipt(tx_hash)
 
             success = receipt.status == 1

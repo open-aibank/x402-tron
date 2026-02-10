@@ -39,8 +39,27 @@ class NetworkConfig:
         "tron:shasta": "TR2XninQ3jsvRRLGTifFyUHTBysffooUjt",
         "tron:nile": "TFxDcGvS7zfQrS1YzcCMp673ta2NHHzsiH",
         "eip155:97": "0x1825bB32db3443dEc2cc7508b2D818fc13EaD878",
-        # TODO: Add BSC Mainnet PaymentPermit address here
+        "eip155:56": "0x1825bB32db3443dEc2cc7508b2D818fc13EaD878",
     }
+
+    # RPC URLs for EVM networks
+    RPC_URLS: Dict[str, str] = {
+        "eip155:97": "https://data-seed-prebsc-1-s1.binance.org:8545/",
+        "eip155:56": "https://bsc-dataseed.binance.org/",
+        # "eip155:1": "https://eth.llamarpc.com",
+    }
+
+    @classmethod
+    def get_rpc_url(cls, network: str) -> str | None:
+        """Get RPC URL for an EVM network.
+
+        Args:
+            network: Network identifier (e.g., "eip155:97")
+
+        Returns:
+            RPC URL string, or None if not configured
+        """
+        return cls.RPC_URLS.get(network)
 
     @classmethod
     def get_chain_id(cls, network: str) -> int:

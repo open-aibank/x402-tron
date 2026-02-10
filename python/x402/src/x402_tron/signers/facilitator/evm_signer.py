@@ -5,8 +5,9 @@ EvmFacilitatorSigner - EVM facilitator signer implementation
 import logging
 from typing import Any
 
-from x402_tron.abi import EIP712_DOMAIN_TYPE, PAYMENT_PERMIT_PRIMARY_TYPE
+from x402_tron.abi import PAYMENT_PERMIT_PRIMARY_TYPE
 from x402_tron.signers.facilitator.base import FacilitatorSigner
+from x402_tron.signers.utils import _eip712_domain_type_from_keys, resolve_provider_uri
 
 logger = logging.getLogger(__name__)
 
@@ -50,9 +51,12 @@ class EvmFacilitatorSigner(FacilitatorSigner):
 
         if net not in self._async_web3_clients:
             from web3 import AsyncHTTPProvider, AsyncWeb3
+            from web3.middleware import ExtraDataToPOAMiddleware
 
-            provider_uri = net if net.startswith(("http", "ws")) else None
-            self._async_web3_clients[net] = AsyncWeb3(AsyncHTTPProvider(provider_uri))
+            provider_uri = resolve_provider_uri(net)
+            w3 = AsyncWeb3(AsyncHTTPProvider(provider_uri))
+            w3.middleware_onion.inject(ExtraDataToPOAMiddleware, layer=0)
+            self._async_web3_clients[net] = w3
 
         return self._async_web3_clients[net]
 
@@ -84,8 +88,11 @@ class EvmFacilitatorSigner(FacilitatorSigner):
                     message_copy["meta"] = dict(message_copy["meta"])
                     message_copy["meta"]["paymentId"] = bytes.fromhex(payment_id[2:])
 
+            # Build EIP712Domain type dynamically from domain keys
+            domain_type = _eip712_domain_type_from_keys(domain)
+
             typed_data = {
-                "types": {"EIP712Domain": EIP712_DOMAIN_TYPE, **types},
+                "types": {"EIP712Domain": domain_type, **types},
                 "primaryType": primary_type,
                 "domain": domain,
                 "message": message_copy,
@@ -129,12 +136,14 @@ class EvmFacilitatorSigner(FacilitatorSigner):
             )
 
             signed_tx = w3.eth.account.sign_transaction(tx, private_key=self._private_key)
-            tx_hash = await w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+            tx_hash = await w3.eth.send_raw_transaction(signed_tx.raw_transaction)
             return tx_hash.hex()
         except Exception as e:
             logger.error(
-                "Contract write failed",
-                extra={"method": method, "contract": contract_address, "error": str(e)},
+                "Contract write failed: %s",
+                e,
+                exc_info=True,
+                extra={"method": method, "contract": contract_address},
             )
             return None
 

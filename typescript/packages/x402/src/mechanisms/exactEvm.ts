@@ -62,7 +62,7 @@ export class ExactEvmClientMechanism implements ClientMechanism {
         validBefore: context.meta.validBefore,
       },
       buyer: buyerAddress,
-      caller: context.caller || zeroAddress,
+      caller: requirements.extra?.fee?.caller || zeroAddress,
       payment: {
         payToken: requirements.asset,
         payAmount: requirements.amount,

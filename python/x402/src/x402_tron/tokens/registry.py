@@ -26,6 +26,48 @@ class TokenRegistry:
     """Token registry"""
 
     _tokens: dict[str, dict[str, TokenInfo]] = {
+        # BSC Testnet (eip155:97)
+        "eip155:97": {
+            "USDT": TokenInfo(
+                address="0x337610d27c682E347C9cD60BD4b3b107C9d34dDd",
+                decimals=18,
+                name="Tether USD",
+                symbol="USDT",
+            ),
+            "USDC": TokenInfo(
+                address="0x64544969ed7EBf5f083679233325356EbE738930",
+                decimals=18,
+                name="USD Coin",
+                symbol="USDC",
+            ),
+            "DHLU": TokenInfo(
+                address="0x375cADdd2cB68cE82e3D9B075D551067a7b4B816",
+                decimals=6,
+                name="DA HULU",
+                symbol="DHLU",
+            ),
+        },
+        # BSC Mainnet (eip155:56)
+        "eip155:56": {
+            "USDC": TokenInfo(
+                address="0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
+                decimals=18,
+                name="USD Coin",
+                symbol="USDC",
+            ),
+            "USDT": TokenInfo(
+                address="0x55d398326f99059fF775485246999027B3197955",
+                decimals=18,
+                name="Tether USD",
+                symbol="USDT",
+            ),
+            "EPS": TokenInfo(
+                address="0xA7f552078dcC247C2684336020c03648500C6d9F",
+                decimals=18,
+                name="Ellipsis",
+                symbol="EPS",
+            ),
+        },
         # TRON Networks
         "tron:mainnet": {
             "USDT": TokenInfo(
@@ -70,12 +112,14 @@ class TokenRegistry:
         """Register a custom token for specified network
 
         Args:
-            network: Network identifier (e.g. "tron:nile")
+            network: Network identifier (e.g. "tron:nile", "eip155:97")
             token: TokenInfo to register
         """
         if network not in cls._tokens:
             cls._tokens[network] = {}
-        token.address = _converter.normalize(token.address)
+        # Only normalize TRON addresses; EVM addresses stay as-is
+        if not network.startswith("eip155:"):
+            token.address = _converter.normalize(token.address)
         cls._tokens[network][token.symbol.upper()] = token
 
     @classmethod
@@ -95,6 +139,13 @@ class TokenRegistry:
     def find_by_address(cls, network: str, address: str) -> TokenInfo | None:
         """Find token information by address"""
         tokens = cls._tokens.get(network, {})
+        # Use case-insensitive comparison for EVM addresses
+        if network.startswith("eip155:"):
+            lower = address.lower()
+            for info in tokens.values():
+                if info.address.lower() == lower:
+                    return info
+            return None
         normalized = _converter.normalize(address)
         for info in tokens.values():
             if info.address == normalized:

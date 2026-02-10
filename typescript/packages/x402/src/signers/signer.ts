@@ -220,8 +220,7 @@ export class TronClientSigner implements ClientSigner {
       );
 
       if (!tx.result?.result) {
-        console.error('[ALLOWANCE] Failed to build approve transaction');
-        return false;
+        throw new InsufficientAllowanceError('Failed to build approve transaction');
       }
 
       // Sign transaction
@@ -231,8 +230,9 @@ export class TronClientSigner implements ClientSigner {
       const broadcast = await this.tronWeb.trx.sendRawTransaction(signedTx);
       
       if (!broadcast.result) {
-        console.error('[ALLOWANCE] Failed to broadcast approve transaction:', broadcast);
-        return false;
+        throw new InsufficientAllowanceError(
+          `Failed to broadcast approve transaction: ${JSON.stringify(broadcast)}`,
+        );
       }
 
       console.log(`[ALLOWANCE] Approve transaction sent: ${broadcast.txid}`);
@@ -256,8 +256,10 @@ export class TronClientSigner implements ClientSigner {
       console.log('[ALLOWANCE] Approve transaction not confirmed within timeout, assuming success');
       return true;
     } catch (error) {
-      console.error('[ALLOWANCE] Approve transaction failed:', error);
-      return false;
+      if (error instanceof InsufficientAllowanceError) throw error;
+      throw new InsufficientAllowanceError(
+        `Approve transaction failed: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
   }
 }

@@ -40,7 +40,6 @@ class FacilitatorClient:
         self._base_url = base_url.rstrip("/")
         self._headers = headers or {}
         self.facilitator_id = facilitator_id or base_url
-        self._facilitator_address: str | None = None
         self._http_client: httpx.AsyncClient | None = None
 
     async def _get_client(self) -> httpx.AsyncClient:
@@ -58,31 +57,6 @@ class FacilitatorClient:
         if self._http_client:
             await self._http_client.aclose()
             self._http_client = None
-
-    @property
-    def facilitator_address(self) -> str | None:
-        """Get cached facilitator address (call fetch_facilitator_address first)"""
-        return self._facilitator_address
-
-    async def fetch_facilitator_address(self) -> str:
-        """
-        Fetch and cache facilitator address from /supported endpoint.
-
-        Returns:
-            Facilitator address
-
-        Raises:
-            ValueError: If facilitator fee is not configured or feeTo is empty
-        """
-        if self._facilitator_address is None:
-            supported = await self.supported()
-            # Facilitator must have fee configured with non-empty feeTo
-            if not supported.fee:
-                raise ValueError("Facilitator must have fee configured")
-            if not supported.fee.fee_to:
-                raise ValueError("Facilitator fee.feeTo cannot be empty")
-            self._facilitator_address = supported.fee.fee_to
-        return self._facilitator_address
 
     async def supported(self) -> SupportedResponse:
         """

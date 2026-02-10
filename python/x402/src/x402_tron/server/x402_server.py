@@ -157,34 +157,42 @@ class X402Server:
 
         if self._facilitator:
             facilitator = self._facilitator
-            await facilitator.fetch_facilitator_address()
 
-            self._logger.info(
-                "fee_quote input: %s",
-                [(r.scheme, r.network, r.asset) for r in requirements_list],
-            )
-            fee_quotes = await facilitator.fee_quote(requirements_list)
-            # Build lookup by (scheme, network, asset) for matching
-            quote_map: dict[tuple[str, str, str], FeeQuoteResponse] = {
-                (q.scheme, q.network, q.asset): q for q in fee_quotes
-            }
-            self._logger.info("fee_quote result: %s", list(quote_map.keys()))
-            supported: list[PaymentRequirements] = []
-            for req in requirements_list:
-                fee_quote = quote_map.get((req.scheme, req.network, req.asset))
-                if fee_quote is None:
-                    self._logger.warning(
-                        f"Unsupported scheme/token: network={req.network}, "
-                        f"scheme={req.scheme}, asset={req.asset} (skipped)"
-                    )
-                    continue
-                if req.extra is None:
-                    from x402_tron.types import PaymentRequirementsExtra
+            # Split: native_exact doesn't need fee_quote
+            exact_reqs = [r for r in requirements_list if r.scheme != "native_exact"]
+            native_reqs = [r for r in requirements_list if r.scheme == "native_exact"]
 
-                    req.extra = PaymentRequirementsExtra()
-                fee_quote.fee.facilitator_id = facilitator.facilitator_id
-                req.extra.fee = fee_quote.fee
-                supported.append(req)
+            supported: list[PaymentRequirements] = list(native_reqs)
+
+            if exact_reqs:
+                self._logger.info(
+                    "fee_quote input: %s",
+                    [(r.scheme, r.network, r.asset) for r in exact_reqs],
+                )
+                fee_quotes = await facilitator.fee_quote(exact_reqs)
+                self._logger.info(
+                    "fee_quotes: %s",
+                    [q.model_dump(by_alias=True) for q in fee_quotes],
+                )
+                quote_map: dict[tuple[str, str, str], FeeQuoteResponse] = {
+                    (q.scheme, q.network, q.asset): q for q in fee_quotes
+                }
+                self._logger.info("fee_quote result: %s", list(quote_map.keys()))
+                for req in exact_reqs:
+                    fee_quote = quote_map.get((req.scheme, req.network, req.asset))
+                    if fee_quote is None:
+                        self._logger.warning(
+                            f"Unsupported scheme/token: network={req.network}, "
+                            f"scheme={req.scheme}, asset={req.asset} (skipped)"
+                        )
+                        continue
+                    if req.extra is None:
+                        from x402_tron.types import PaymentRequirementsExtra
+
+                        req.extra = PaymentRequirementsExtra()
+                    fee_quote.fee.facilitator_id = facilitator.facilitator_id
+                    req.extra.fee = fee_quote.fee
+                    supported.append(req)
         else:
             raise ValueError("Facilitator is not set")
 
@@ -198,7 +206,6 @@ class X402Server:
         nonce: str | None = None,
         valid_after: int | None = None,
         valid_before: int | None = None,
-        caller: str | None = None,
     ) -> PaymentRequired:
         """Create 402 Payment Required response.
 
@@ -209,7 +216,6 @@ class X402Server:
             nonce: Idempotency nonce
             valid_after: Valid from timestamp
             valid_before: Valid until timestamp
-            caller: Caller address (facilitator address that will execute the permit)
 
         Returns:
             PaymentRequired response
@@ -221,16 +227,6 @@ class X402Server:
 
         now = int(time.time())
 
-        # Get caller (facilitator address) from first facilitator if not provided
-        effective_caller = caller
-        if effective_caller is None and self._facilitator:
-            effective_caller = self._facilitator.facilitator_address
-            # Log for debugging
-            import logging
-
-            logger = logging.getLogger(__name__)
-            logger.info(f"[CALLER] Setting caller from facilitator: {effective_caller}")
-
         extensions = PaymentRequiredExtensions(
             paymentPermitContext=PaymentPermitContext(
                 meta=PaymentPermitContextMeta(
@@ -240,7 +236,6 @@ class X402Server:
                     validAfter=valid_after or now,
                     validBefore=valid_before or (now + 3600),
                 ),
-                caller=effective_caller,
             )
         )
 

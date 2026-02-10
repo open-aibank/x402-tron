@@ -80,6 +80,7 @@ export interface PaymentRequirementsExtra {
     facilitatorId?: string;
     feeTo: string;
     feeAmount: string;
+    caller?: string;
   };
 }
 
@@ -92,8 +93,6 @@ export interface PaymentPermitContext {
     validAfter: number;
     validBefore: number;
   };
-  /** Caller address (facilitator that will execute the permit) */
-  caller?: string;
 }
 
 /** Payment payload sent by client */

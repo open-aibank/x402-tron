@@ -1,6 +1,6 @@
 {
   "name": "@bankofai/x402-tron",
-  "version": "0.1.6",
+  "version": "0.3.0",
   "description": "x402 TypeScript SDK (TRON and EVM support)",
   "keywords": [
     "x402",

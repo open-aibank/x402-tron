@@ -49,6 +49,7 @@ class BaseExactFacilitatorMechanism(FacilitatorMechanism):
     ) -> None:
         self._signer = signer
         self._fee_to = fee_to or signer.get_address()
+        self._caller = signer.get_address()
         self._address_converter = self._get_address_converter()
         self._base_fee_map: dict[str, int] = {}
         if base_fee:
@@ -121,6 +122,7 @@ class BaseExactFacilitatorMechanism(FacilitatorMechanism):
             fee=FeeInfo(
                 feeTo=self._fee_to,
                 feeAmount=fee_amount,
+                caller=self._caller,
             ),
             pricing="flat",
             scheme=accept.scheme,
