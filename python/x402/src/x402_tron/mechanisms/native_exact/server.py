@@ -1,5 +1,5 @@
 """
-NativeExactTronServerMechanism - native_exact server mechanism for TRON.
+NativeExactEvmServerMechanism - native_exact server mechanism for EVM.
 
 Handles price parsing, requirement validation, and signature verification
 for the native_exact scheme.
@@ -8,7 +8,6 @@ for the native_exact scheme.
 import logging
 from typing import Any
 
-from x402_tron.address import TronAddressConverter
 from x402_tron.mechanisms.native_exact.types import SCHEME_NATIVE_EXACT
 from x402_tron.mechanisms.server.base import ServerMechanism
 from x402_tron.tokens import TokenRegistry
@@ -17,11 +16,8 @@ from x402_tron.types import PaymentRequirements, PaymentRequirementsExtra
 logger = logging.getLogger(__name__)
 
 
-class NativeExactTronServerMechanism(ServerMechanism):
-    """TransferWithAuthorization server mechanism for TRON."""
-
-    def __init__(self) -> None:
-        self._converter = TronAddressConverter()
+class NativeExactEvmServerMechanism(ServerMechanism):
+    """TransferWithAuthorization server mechanism for EVM."""
 
     def scheme(self) -> str:
         return SCHEME_NATIVE_EXACT
@@ -45,11 +41,11 @@ class NativeExactTronServerMechanism(ServerMechanism):
         return requirements
 
     def validate_payment_requirements(self, requirements: PaymentRequirements) -> bool:
-        if not requirements.network.startswith("tron:"):
+        if not requirements.network.startswith("eip155:"):
             return False
-        if not requirements.asset.startswith("T"):
+        if not requirements.asset.startswith("0x"):
             return False
-        if not requirements.pay_to.startswith("T"):
+        if not requirements.pay_to.startswith("0x"):
             return False
         try:
             if int(requirements.amount) <= 0:

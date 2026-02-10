@@ -1,28 +1,30 @@
 """
-Tests for NativeExactTronServerMechanism.
+Tests for NativeExactEvmServerMechanism.
 """
 
 import pytest
 
-from x402_tron.mechanisms.native_exact.server import NativeExactTronServerMechanism
+from x402_tron.mechanisms.native_exact.server import NativeExactEvmServerMechanism
 from x402_tron.mechanisms.native_exact.types import SCHEME_NATIVE_EXACT
 from x402_tron.tokens import TokenInfo, TokenRegistry
 from x402_tron.types import PaymentRequirements
+
+USDC_ADDRESS = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
 
 
 @pytest.fixture(autouse=True)
 def _register_test_token():
     TokenRegistry.register_token(
-        "tron:nile",
-        TokenInfo(address="TTestUSDTAddress", decimals=6, name="Test USDT", symbol="USDT"),
+        "eip155:8453",
+        TokenInfo(address=USDC_ADDRESS, decimals=6, name="USD Coin", symbol="USDC"),
     )
     yield
-    TokenRegistry._tokens.get("tron:nile", {}).pop("USDT", None)
+    TokenRegistry._tokens.get("eip155:8453", {}).pop("USDC", None)
 
 
 @pytest.fixture
 def mechanism():
-    return NativeExactTronServerMechanism()
+    return NativeExactEvmServerMechanism()
 
 
 class TestScheme:
@@ -33,20 +35,20 @@ class TestScheme:
 class TestParsePrice:
     @pytest.mark.anyio
     async def test_parse_valid_price(self, mechanism):
-        result = await mechanism.parse_price("1 USDT", "tron:nile")
+        result = await mechanism.parse_price("1 USDC", "eip155:8453")
         assert result["amount"] == 1_000_000
-        assert result["symbol"] == "USDT"
+        assert result["symbol"] == "USDC"
         assert result["decimals"] == 6
 
     @pytest.mark.anyio
     async def test_parse_fractional_price(self, mechanism):
-        result = await mechanism.parse_price("0.5 USDT", "tron:nile")
+        result = await mechanism.parse_price("0.5 USDC", "eip155:8453")
         assert result["amount"] == 500_000
 
     @pytest.mark.anyio
     async def test_parse_invalid_format(self, mechanism):
         with pytest.raises(ValueError):
-            await mechanism.parse_price("invalid", "tron:nile")
+            await mechanism.parse_price("invalid", "eip155:8453")
 
 
 class TestEnhancePaymentRequirements:
@@ -54,14 +56,14 @@ class TestEnhancePaymentRequirements:
     async def test_adds_token_metadata(self, mechanism):
         req = PaymentRequirements(
             scheme="native_exact",
-            network="tron:nile",
+            network="eip155:8453",
             amount="1000000",
-            asset="TTestUSDTAddress",
-            payTo="TTestMerchant",
+            asset=USDC_ADDRESS,
+            payTo="0xMerchantAddress000000000000000000000001",
         )
         enhanced = await mechanism.enhance_payment_requirements(req, "PAYMENT_ONLY")
         assert enhanced.extra is not None
-        assert enhanced.extra.name == "Test USDT"
+        assert enhanced.extra.name == "USD Coin"
         assert enhanced.extra.version == "1"
 
 
@@ -69,60 +71,60 @@ class TestValidatePaymentRequirements:
     def test_valid_requirements(self, mechanism):
         req = PaymentRequirements(
             scheme="native_exact",
-            network="tron:nile",
+            network="eip155:8453",
             amount="1000000",
-            asset="TTestUSDTAddress",
-            payTo="TTestMerchant",
+            asset=USDC_ADDRESS,
+            payTo="0xMerchantAddress000000000000000000000001",
         )
         assert mechanism.validate_payment_requirements(req) is True
 
     def test_invalid_network(self, mechanism):
         req = PaymentRequirements(
             scheme="native_exact",
-            network="eip155:1",
+            network="tron:nile",
             amount="1000000",
-            asset="TTestUSDTAddress",
-            payTo="TTestMerchant",
+            asset=USDC_ADDRESS,
+            payTo="0xMerchantAddress000000000000000000000001",
         )
         assert mechanism.validate_payment_requirements(req) is False
 
     def test_invalid_asset_format(self, mechanism):
         req = PaymentRequirements(
             scheme="native_exact",
-            network="tron:nile",
+            network="eip155:8453",
             amount="1000000",
-            asset="0xNotTronAddress",
-            payTo="TTestMerchant",
+            asset="TNotEvmAddress",
+            payTo="0xMerchantAddress000000000000000000000001",
         )
         assert mechanism.validate_payment_requirements(req) is False
 
     def test_invalid_payto_format(self, mechanism):
         req = PaymentRequirements(
             scheme="native_exact",
-            network="tron:nile",
+            network="eip155:8453",
             amount="1000000",
-            asset="TTestUSDTAddress",
-            payTo="0xNotTronAddress",
+            asset=USDC_ADDRESS,
+            payTo="TNotEvmAddress",
         )
         assert mechanism.validate_payment_requirements(req) is False
 
     def test_zero_amount(self, mechanism):
         req = PaymentRequirements(
             scheme="native_exact",
-            network="tron:nile",
+            network="eip155:8453",
             amount="0",
-            asset="TTestUSDTAddress",
-            payTo="TTestMerchant",
+            asset=USDC_ADDRESS,
+            payTo="0xMerchantAddress000000000000000000000001",
         )
         assert mechanism.validate_payment_requirements(req) is False
 
     def test_negative_amount(self, mechanism):
         req = PaymentRequirements(
             scheme="native_exact",
-            network="tron:nile",
+            network="eip155:8453",
             amount="-100",
-            asset="TTestUSDTAddress",
-            payTo="TTestMerchant",
+            asset=USDC_ADDRESS,
+            payTo="0xMerchantAddress000000000000000000000001",
         )
         assert mechanism.validate_payment_requirements(req) is False
 
@@ -131,11 +133,11 @@ class TestVerifySignature:
     @pytest.mark.anyio
     async def test_passthrough_when_permit_none(self, mechanism):
         """native_exact has no permit, verify_signature should pass through"""
-        result = await mechanism.verify_signature(None, "0xsig", "tron:nile")
+        result = await mechanism.verify_signature(None, "0xsig", "eip155:8453")
         assert result is True
 
     @pytest.mark.anyio
     async def test_passthrough_when_permit_present(self, mechanism):
         """Even with a permit object, should pass through"""
-        result = await mechanism.verify_signature(object(), "0xsig", "tron:nile")
+        result = await mechanism.verify_signature(object(), "0xsig", "eip155:8453")
         assert result is True

@@ -103,17 +103,11 @@ def get_transfer_with_authorization_abi_json() -> str:
 
 def build_eip712_message(
     auth: TransferAuthorization,
-    to_evm: Any,
 ) -> dict[str, Any]:
-    """Build EIP-712 message dict from authorization.
-
-    Args:
-        auth: Transfer authorization.
-        to_evm: Callable that converts an address to EVM format.
-    """
+    """Build EIP-712 message dict from authorization."""
     return {
-        "from": to_evm(auth.from_address),
-        "to": to_evm(auth.to),
+        "from": auth.from_address,
+        "to": auth.to,
         "value": int(auth.value),
         "validAfter": int(auth.valid_after),
         "validBefore": int(auth.valid_before),
@@ -125,15 +119,22 @@ def build_eip712_domain(
     token_name: str,
     token_version: str,
     chain_id: int,
-    verifying_contract_evm: str,
+    verifying_contract: str,
 ) -> dict[str, Any]:
     """Build EIP-712 domain dict for native_exact."""
     return {
         "name": token_name,
         "version": token_version,
         "chainId": chain_id,
-        "verifyingContract": verifying_contract_evm,
+        "verifyingContract": verifying_contract,
     }
+
+
+def parse_evm_chain_id(network: str) -> int:
+    """Extract chain ID from an EVM network string like 'eip155:8453'."""
+    if not network.startswith("eip155:"):
+        raise ValueError(f"Not an EVM network: {network}")
+    return int(network.split(":", 1)[1])
 
 
 # ---------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 """
-NativeExactTronClientMechanism - native_exact client mechanism for TRON.
+NativeExactEvmClientMechanism - native_exact client mechanism for EVM.
 
 Signs TransferWithAuthorization EIP-712 typed data directly on the token contract.
 No PaymentPermit contract or approve/allowance needed.
@@ -8,8 +8,6 @@ No PaymentPermit contract or approve/allowance needed.
 import logging
 from typing import TYPE_CHECKING, Any
 
-from x402_tron.address import TronAddressConverter
-from x402_tron.config import NetworkConfig
 from x402_tron.mechanisms.client.base import ClientMechanism
 from x402_tron.mechanisms.native_exact.types import (
     SCHEME_NATIVE_EXACT,
@@ -19,6 +17,7 @@ from x402_tron.mechanisms.native_exact.types import (
     build_eip712_message,
     create_nonce,
     create_validity_window,
+    parse_evm_chain_id,
 )
 from x402_tron.tokens import TokenRegistry
 from x402_tron.types import (
@@ -34,12 +33,11 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class NativeExactTronClientMechanism(ClientMechanism):
-    """TransferWithAuthorization client mechanism for TRON."""
+class NativeExactEvmClientMechanism(ClientMechanism):
+    """TransferWithAuthorization client mechanism for EVM."""
 
     def __init__(self, signer: "ClientSigner") -> None:
         self._signer = signer
-        self._converter = TronAddressConverter()
 
     def scheme(self) -> str:
         return SCHEME_NATIVE_EXACT
@@ -54,7 +52,6 @@ class NativeExactTronClientMechanism(ClientMechanism):
         extensions: dict[str, Any] | None = None,
     ) -> PaymentPayload:
         """Create native_exact payment payload."""
-        converter = self._converter
         from_addr = self._signer.get_address()
         to_addr = requirements.pay_to
         value = requirements.amount
@@ -81,14 +78,14 @@ class NativeExactTronClientMechanism(ClientMechanism):
         )
 
         # Build EIP-712 domain and message from authorization
-        chain_id = NetworkConfig.get_chain_id(requirements.network)
+        chain_id = parse_evm_chain_id(requirements.network)
         domain = build_eip712_domain(
             token_name,
             token_version,
             chain_id,
-            converter.to_evm_format(token_address),
+            token_address,
         )
-        message = build_eip712_message(authorization, converter.to_evm_format)
+        message = build_eip712_message(authorization)
 
         logger.info(
             "[NATIVE-EXACT] Signing TransferWithAuthorization: from=%s, to=%s, value=%s, token=%s",

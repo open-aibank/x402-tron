@@ -1,5 +1,5 @@
 """
-NativeExactTronFacilitatorMechanism - native_exact facilitator mechanism for TRON.
+NativeExactEvmFacilitatorMechanism - native_exact facilitator mechanism for EVM.
 
 Verifies TransferWithAuthorization signatures and settles by calling
 transferWithAuthorization on the token contract.
@@ -9,8 +9,6 @@ import logging
 import time
 from typing import TYPE_CHECKING, Any
 
-from x402_tron.address import TronAddressConverter
-from x402_tron.config import NetworkConfig
 from x402_tron.mechanisms.facilitator.base import FacilitatorMechanism
 from x402_tron.mechanisms.native_exact.types import (
     SCHEME_NATIVE_EXACT,
@@ -19,6 +17,7 @@ from x402_tron.mechanisms.native_exact.types import (
     build_eip712_domain,
     build_eip712_message,
     get_transfer_with_authorization_abi_json,
+    parse_evm_chain_id,
 )
 from x402_tron.tokens import TokenRegistry
 from x402_tron.types import (
@@ -36,8 +35,8 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class NativeExactTronFacilitatorMechanism(FacilitatorMechanism):
-    """TransferWithAuthorization facilitator mechanism for TRON.
+class NativeExactEvmFacilitatorMechanism(FacilitatorMechanism):
+    """TransferWithAuthorization facilitator mechanism for EVM.
 
     Note: native_exact only supports a single transfer per authorization,
     so the facilitator cannot collect fees from the payment itself.
@@ -50,11 +49,8 @@ class NativeExactTronFacilitatorMechanism(FacilitatorMechanism):
         allowed_tokens: set[str] | None = None,
     ) -> None:
         self._signer = signer
-        self._converter = TronAddressConverter()
         self._allowed_tokens: set[str] | None = (
-            {self._converter.normalize(t) for t in allowed_tokens}
-            if allowed_tokens is not None
-            else None
+            {t.lower() for t in allowed_tokens} if allowed_tokens is not None else None
         )
 
     def scheme(self) -> str:
@@ -141,12 +137,11 @@ class NativeExactTronFacilitatorMechanism(FacilitatorMechanism):
 
         nonce_bytes = bytes.fromhex(auth.nonce[2:] if auth.nonce.startswith("0x") else auth.nonce)
 
-        converter = self._converter
         token_address = requirements.asset
 
         args = [
-            converter.normalize(auth.from_address),
-            converter.normalize(auth.to),
+            auth.from_address,
+            auth.to,
             int(auth.value),
             int(auth.valid_after),
             int(auth.valid_before),
@@ -215,11 +210,9 @@ class NativeExactTronFacilitatorMechanism(FacilitatorMechanism):
         auth: TransferAuthorization,
         requirements: PaymentRequirements,
     ) -> str | None:
-        norm = self._converter.normalize
-
         # Token whitelist
         if self._allowed_tokens is not None:
-            if norm(requirements.asset) not in self._allowed_tokens:
+            if requirements.asset.lower() not in self._allowed_tokens:
                 return "token_not_allowed"
 
         # Amount check
@@ -227,7 +220,7 @@ class NativeExactTronFacilitatorMechanism(FacilitatorMechanism):
             return "amount_mismatch"
 
         # Recipient check
-        if norm(auth.to) != norm(requirements.pay_to):
+        if auth.to.lower() != requirements.pay_to.lower():
             return "payto_mismatch"
 
         # Time window
@@ -245,9 +238,8 @@ class NativeExactTronFacilitatorMechanism(FacilitatorMechanism):
         signature: str,
         requirements: PaymentRequirements,
     ) -> bool:
-        converter = self._converter
         token_address = requirements.asset
-        chain_id = NetworkConfig.get_chain_id(requirements.network)
+        chain_id = parse_evm_chain_id(requirements.network)
 
         token_info = TokenRegistry.find_by_address(requirements.network, token_address)
         token_name = token_info.name if token_info else "Unknown Token"
@@ -257,9 +249,9 @@ class NativeExactTronFacilitatorMechanism(FacilitatorMechanism):
             token_name,
             token_version,
             chain_id,
-            converter.to_evm_format(token_address),
+            token_address,
         )
-        message = build_eip712_message(auth, converter.to_evm_format)
+        message = build_eip712_message(auth)
 
         return await self._signer.verify_typed_data(
             address=auth.from_address,

@@ -83,18 +83,17 @@ class TestBuildEip712Message:
     def test_builds_correct_message(self):
         auth = TransferAuthorization(
             **{
-                "from": "TFrom",
-                "to": "TTo",
+                "from": "0xFromAddr",
+                "to": "0xToAddr",
                 "value": "1000000",
                 "validAfter": "100",
                 "validBefore": "200",
                 "nonce": "0x" + "ab" * 32,
             }
         )
-        # identity converter for testing
-        msg = build_eip712_message(auth, lambda x: f"0x{x}")
-        assert msg["from"] == "0xTFrom"
-        assert msg["to"] == "0xTTo"
+        msg = build_eip712_message(auth)
+        assert msg["from"] == "0xFromAddr"
+        assert msg["to"] == "0xToAddr"
         assert msg["value"] == 1000000
         assert msg["validAfter"] == 100
         assert msg["validBefore"] == 200
