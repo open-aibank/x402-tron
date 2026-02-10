@@ -130,13 +130,6 @@ def build_eip712_domain(
     }
 
 
-def parse_evm_chain_id(network: str) -> int:
-    """Extract chain ID from an EVM network string like 'eip155:8453'."""
-    if not network.startswith("eip155:"):
-        raise ValueError(f"Not an EVM network: {network}")
-    return int(network.split(":", 1)[1])
-
-
 # ---------------------------------------------------------------------------
 # Utility helpers
 # ---------------------------------------------------------------------------
