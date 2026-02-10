@@ -1,5 +1,5 @@
 """
-Tests for ExactEvmFacilitatorMechanism - EVM exact payment scheme facilitator.
+Tests for ExactPermitEvmFacilitatorMechanism - EVM exact payment scheme facilitator.
 """
 
 import time
@@ -7,9 +7,9 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from x402_tron.mechanisms.facilitator.evm_exact import ExactEvmFacilitatorMechanism
-from x402_tron.tokens import TokenInfo, TokenRegistry
-from x402_tron.types import (
+from bankofai.x402.mechanisms.evm.exact_permit import ExactPermitEvmFacilitatorMechanism
+from bankofai.x402.tokens import TokenInfo, TokenRegistry
+from bankofai.x402.types import (
     Fee,
     Payment,
     PaymentPayload,
@@ -52,7 +52,7 @@ def mock_signer():
 @pytest.fixture
 def base_requirements():
     return PaymentRequirements(
-        scheme="exact",
+        scheme="exact_permit",
         network="eip155:8453",
         amount="1000000",
         asset=USDC_ADDRESS,
@@ -95,24 +95,24 @@ def valid_payload(base_requirements):
 
 class TestScheme:
     def test_scheme(self, mock_signer):
-        mechanism = ExactEvmFacilitatorMechanism(mock_signer, base_fee={"USDC": 0})
-        assert mechanism.scheme() == "exact"
+        mechanism = ExactPermitEvmFacilitatorMechanism(mock_signer, base_fee={"USDC": 0})
+        assert mechanism.scheme() == "exact_permit"
 
 
 class TestFeeQuote:
     @pytest.mark.anyio
     async def test_fee_quote(self, mock_signer, base_requirements):
-        mechanism = ExactEvmFacilitatorMechanism(mock_signer, base_fee={"USDC": 5000})
+        mechanism = ExactPermitEvmFacilitatorMechanism(mock_signer, base_fee={"USDC": 5000})
         result = await mechanism.fee_quote(base_requirements)
         assert result is not None
         assert result.fee.fee_amount == "5000"
-        assert result.scheme == "exact"
+        assert result.scheme == "exact_permit"
         assert result.network == "eip155:8453"
 
     @pytest.mark.anyio
     async def test_fee_quote_unsupported_token(self, mock_signer, base_requirements):
         """Token in base_fee doesn't match the asset in requirements → returns None"""
-        mechanism = ExactEvmFacilitatorMechanism(mock_signer, base_fee={"USDT": 0})
+        mechanism = ExactPermitEvmFacilitatorMechanism(mock_signer, base_fee={"USDT": 0})
         result = await mechanism.fee_quote(base_requirements)
         assert result is None
 
@@ -120,7 +120,7 @@ class TestFeeQuote:
 class TestTokenWhitelist:
     @pytest.mark.anyio
     async def test_allowed_token_passes(self, mock_signer, valid_payload, base_requirements):
-        mechanism = ExactEvmFacilitatorMechanism(
+        mechanism = ExactPermitEvmFacilitatorMechanism(
             mock_signer,
             allowed_tokens={USDC_ADDRESS},
             base_fee={"USDC": 0},
@@ -130,7 +130,7 @@ class TestTokenWhitelist:
 
     @pytest.mark.anyio
     async def test_disallowed_token_rejected(self, mock_signer, valid_payload, base_requirements):
-        mechanism = ExactEvmFacilitatorMechanism(
+        mechanism = ExactPermitEvmFacilitatorMechanism(
             mock_signer,
             allowed_tokens={"0xSomeOtherToken000000000000000000000001"},
             base_fee={"USDC": 0},
@@ -141,7 +141,7 @@ class TestTokenWhitelist:
 
     @pytest.mark.anyio
     async def test_none_whitelist_allows_all(self, mock_signer, valid_payload, base_requirements):
-        mechanism = ExactEvmFacilitatorMechanism(
+        mechanism = ExactPermitEvmFacilitatorMechanism(
             mock_signer,
             allowed_tokens=None,
             base_fee={"USDC": 0},
@@ -151,7 +151,7 @@ class TestTokenWhitelist:
 
     @pytest.mark.anyio
     async def test_empty_whitelist_rejects_all(self, mock_signer, valid_payload, base_requirements):
-        mechanism = ExactEvmFacilitatorMechanism(
+        mechanism = ExactPermitEvmFacilitatorMechanism(
             mock_signer,
             allowed_tokens=set(),
             base_fee={"USDC": 0},
@@ -164,7 +164,7 @@ class TestTokenWhitelist:
 class TestSettle:
     @pytest.mark.anyio
     async def test_settle_success(self, mock_signer, valid_payload, base_requirements):
-        mechanism = ExactEvmFacilitatorMechanism(mock_signer, base_fee={"USDC": 0})
+        mechanism = ExactPermitEvmFacilitatorMechanism(mock_signer, base_fee={"USDC": 0})
         result = await mechanism.settle(valid_payload, base_requirements)
 
         assert result.success is True
@@ -176,7 +176,7 @@ class TestSettle:
     async def test_settle_calls_permit_transfer_from(
         self, mock_signer, valid_payload, base_requirements
     ):
-        mechanism = ExactEvmFacilitatorMechanism(mock_signer, base_fee={"USDC": 0})
+        mechanism = ExactPermitEvmFacilitatorMechanism(mock_signer, base_fee={"USDC": 0})
         await mechanism.settle(valid_payload, base_requirements)
 
         call_args = mock_signer.write_contract.call_args
@@ -185,7 +185,7 @@ class TestSettle:
     @pytest.mark.anyio
     async def test_settle_transaction_failed(self, mock_signer, valid_payload, base_requirements):
         mock_signer.write_contract = AsyncMock(return_value=None)
-        mechanism = ExactEvmFacilitatorMechanism(mock_signer, base_fee={"USDC": 0})
+        mechanism = ExactPermitEvmFacilitatorMechanism(mock_signer, base_fee={"USDC": 0})
         result = await mechanism.settle(valid_payload, base_requirements)
 
         assert result.success is False
@@ -194,7 +194,7 @@ class TestSettle:
     @pytest.mark.anyio
     async def test_settle_fee_amount_mismatch(self, mock_signer, valid_payload, base_requirements):
         valid_payload.payload.payment_permit.fee.fee_amount = "0"
-        mechanism = ExactEvmFacilitatorMechanism(mock_signer, base_fee={"USDC": 1_000_000})
+        mechanism = ExactPermitEvmFacilitatorMechanism(mock_signer, base_fee={"USDC": 1_000_000})
         result = await mechanism.settle(valid_payload, base_requirements)
 
         assert result.success is False
@@ -203,7 +203,7 @@ class TestSettle:
     @pytest.mark.anyio
     async def test_settle_fee_to_mismatch(self, mock_signer, valid_payload, base_requirements):
         valid_payload.payload.payment_permit.fee.fee_to = "0xWrongAddress"
-        mechanism = ExactEvmFacilitatorMechanism(mock_signer, base_fee={"USDC": 0})
+        mechanism = ExactPermitEvmFacilitatorMechanism(mock_signer, base_fee={"USDC": 0})
         result = await mechanism.settle(valid_payload, base_requirements)
 
         assert result.success is False
@@ -213,7 +213,7 @@ class TestSettle:
     async def test_settle_rejects_disallowed_token(
         self, mock_signer, valid_payload, base_requirements
     ):
-        mechanism = ExactEvmFacilitatorMechanism(
+        mechanism = ExactPermitEvmFacilitatorMechanism(
             mock_signer,
             allowed_tokens={"0xSomeOtherToken000000000000000000000001"},
             base_fee={"USDC": 0},

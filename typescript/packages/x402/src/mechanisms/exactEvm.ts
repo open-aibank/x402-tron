@@ -1,5 +1,5 @@
 /**
- * ExactEvmClientMechanism - EVM client mechanism for "exact" payment scheme
+ * ExactPermitEvmClientMechanism - EVM client mechanism for "exact_permit" payment scheme
  */
 
 import type {
@@ -22,9 +22,9 @@ import {
 } from '../index.js';
 
 /**
- * EVM client mechanism for "exact" payment scheme
+ * EVM client mechanism for "exact_permit" payment scheme
  */
-export class ExactEvmClientMechanism implements ClientMechanism {
+export class ExactPermitEvmClientMechanism implements ClientMechanism {
   private signer: ClientSigner;
   private addressConverter = new EvmAddressConverter();
 
@@ -37,7 +37,7 @@ export class ExactEvmClientMechanism implements ClientMechanism {
   }
 
   scheme(): string {
-    return 'exact';
+    return 'exact_permit';
   }
 
   async createPaymentPayload(

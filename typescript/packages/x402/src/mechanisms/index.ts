@@ -2,17 +2,17 @@
  * x402 Client Mechanisms
  */
 
+// exact_permit scheme
+export { ExactPermitTronClientMechanism } from './exact.js';
+export { ExactPermitEvmClientMechanism } from './exactEvm.js';
+
 // exact scheme
-export { ExactTronClientMechanism } from './exact.js';
-export { ExactEvmClientMechanism } from './exactEvm.js';
+export { ExactTronClientMechanism } from './nativeExactTron.js';
+export { ExactEvmClientMechanism } from './nativeExactEvm.js';
 
-// native_exact scheme
-export { NativeExactTronClientMechanism } from './nativeExactTron.js';
-export { NativeExactEvmClientMechanism } from './nativeExactEvm.js';
-
-// native_exact shared types
+// exact shared types
 export {
-  SCHEME_NATIVE_EXACT,
+  SCHEME_EXACT,
   TRANSFER_AUTH_EIP712_TYPES,
   TRANSFER_AUTH_PRIMARY_TYPE,
   buildEip712Domain,

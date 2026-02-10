@@ -1,16 +1,16 @@
 import { describe, it, expect, vi } from 'vitest';
-import { ExactEvmClientMechanism } from './exactEvm.js';
+import { ExactPermitEvmClientMechanism } from './exactEvm.js';
 import { EvmClientSigner } from '../signers/evmSigner.js';
 import { PermitValidationError } from '../errors.js';
 
-describe('ExactEvmClientMechanism', () => {
+describe('ExactPermitEvmClientMechanism', () => {
   const privateKey =
     '0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
   const signer = new EvmClientSigner(privateKey);
-  const mechanism = new ExactEvmClientMechanism(signer);
+  const mechanism = new ExactPermitEvmClientMechanism(signer);
 
   const requirements = {
-    scheme: 'exact',
+    scheme: 'exact_permit',
     network: 'eip155:1',
     amount: '1000000',
     asset: '0x1234567890123456789012345678901234567890',
@@ -28,7 +28,7 @@ describe('ExactEvmClientMechanism', () => {
   };
 
   it('should have correct scheme', () => {
-    expect(mechanism.scheme()).toBe('exact');
+    expect(mechanism.scheme()).toBe('exact_permit');
   });
 
   it('should create payment payload', async () => {

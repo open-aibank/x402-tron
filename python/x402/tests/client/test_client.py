@@ -1,15 +1,15 @@
 import pytest
 
-from x402_tron.clients import X402Client
-from x402_tron.clients.x402_client import PaymentRequirementsFilter
-from x402_tron.types import PaymentRequirements
+from bankofai.x402.clients import X402Client
+from bankofai.x402.clients.x402_client import PaymentRequirementsFilter
+from bankofai.x402.types import PaymentRequirements
 
 
 class MockClientMechanism:
     """用于测试的模拟机制"""
 
     def scheme(self) -> str:
-        return "exact"
+        return "exact_permit"
 
     def get_signer(self):
         return None
@@ -42,14 +42,14 @@ async def test_client_select_payment_requirements():
 
     accepts = [
         PaymentRequirements(
-            scheme="exact",
+            scheme="exact_permit",
             network="tron:shasta",
             amount="1000000",
             asset="TTestUSDT",
             payTo="TTestMerchant",
         ),
         PaymentRequirements(
-            scheme="exact",
+            scheme="exact_permit",
             network="eip155:8453",
             amount="1000000",
             asset="0xTestUSDC",
@@ -71,14 +71,14 @@ async def test_client_select_with_tron_filter():
 
     accepts = [
         PaymentRequirements(
-            scheme="exact",
+            scheme="exact_permit",
             network="tron:shasta",
             amount="1000000",
             asset="TTestUSDT",
             payTo="TTestMerchant",
         ),
         PaymentRequirements(
-            scheme="exact",
+            scheme="exact_permit",
             network="eip155:8453",
             amount="1000000",
             asset="0xTestUSDC",
@@ -102,14 +102,14 @@ async def test_client_select_with_evm_filter():
     client.register("eip155:8453", mechanism)
     accepts = [
         PaymentRequirements(
-            scheme="exact",
+            scheme="exact_permit",
             network="tron:shasta",
             amount="1000000",
             asset="TTestUSDT",
             payTo="TTestMerchant",
         ),
         PaymentRequirements(
-            scheme="exact",
+            scheme="exact_permit",
             network="eip155:8453",
             amount="1000000",
             asset="0xTestUSDC",
@@ -132,7 +132,7 @@ async def test_client_create_payment_payload():
     client.register("tron:shasta", mechanism)
 
     requirements = PaymentRequirements(
-        scheme="exact",
+        scheme="exact_permit",
         network="tron:shasta",
         amount="1000000",
         asset="TTestUSDT",

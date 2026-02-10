@@ -1,5 +1,5 @@
 /**
- * ExactTronClientMechanism - TRON client mechanism for "exact" payment scheme
+ * ExactPermitTronClientMechanism - TRON client mechanism for "exact_permit" payment scheme
  *
  * Uses TIP-712 (TRON's EIP-712 implementation) for signing PaymentPermit.
  */
@@ -24,9 +24,9 @@ import {
 } from '../index.js';
 
 /**
- * TRON client mechanism for "exact" payment scheme
+ * TRON client mechanism for "exact_permit" payment scheme
  */
-export class ExactTronClientMechanism implements ClientMechanism {
+export class ExactPermitTronClientMechanism implements ClientMechanism {
   private signer: ClientSigner;
   private addressConverter = new TronAddressConverter();
 
@@ -39,7 +39,7 @@ export class ExactTronClientMechanism implements ClientMechanism {
   }
 
   scheme(): string {
-    return 'exact';
+    return 'exact_permit';
   }
 
   async createPaymentPayload(

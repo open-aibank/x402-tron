@@ -1,13 +1,13 @@
 """
-Tests for ExactEvmClientMechanism - EVM exact payment scheme client.
+Tests for ExactPermitEvmClientMechanism - EVM exact payment scheme client.
 """
 
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from x402_tron.mechanisms.client.evm_exact import ExactEvmClientMechanism
-from x402_tron.types import FeeInfo, PaymentRequirements, PaymentRequirementsExtra
+from bankofai.x402.mechanisms.evm.exact_permit import ExactPermitEvmClientMechanism
+from bankofai.x402.types import FeeInfo, PaymentRequirements, PaymentRequirementsExtra
 
 
 @pytest.fixture
@@ -22,7 +22,7 @@ def mock_signer():
 @pytest.fixture
 def base_requirements():
     return PaymentRequirements(
-        scheme="exact",
+        scheme="exact_permit",
         network="eip155:8453",
         amount="1000000",
         asset="0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
@@ -55,16 +55,16 @@ def permit_context():
 
 class TestExactEvmClient:
     def test_scheme(self, mock_signer):
-        mechanism = ExactEvmClientMechanism(mock_signer)
-        assert mechanism.scheme() == "exact"
+        mechanism = ExactPermitEvmClientMechanism(mock_signer)
+        assert mechanism.scheme() == "exact_permit"
 
     def test_get_signer(self, mock_signer):
-        mechanism = ExactEvmClientMechanism(mock_signer)
+        mechanism = ExactPermitEvmClientMechanism(mock_signer)
         assert mechanism.get_signer() is mock_signer
 
     @pytest.mark.anyio
     async def test_ensure_allowance_called(self, mock_signer, base_requirements, permit_context):
-        mechanism = ExactEvmClientMechanism(mock_signer)
+        mechanism = ExactPermitEvmClientMechanism(mock_signer)
 
         await mechanism.create_payment_payload(
             base_requirements,
@@ -82,7 +82,7 @@ class TestExactEvmClient:
     async def test_allowance_amount_includes_fee(
         self, mock_signer, base_requirements, permit_context
     ):
-        mechanism = ExactEvmClientMechanism(mock_signer)
+        mechanism = ExactPermitEvmClientMechanism(mock_signer)
 
         await mechanism.create_payment_payload(
             base_requirements,
@@ -96,7 +96,7 @@ class TestExactEvmClient:
 
     @pytest.mark.anyio
     async def test_payload_structure(self, mock_signer, base_requirements, permit_context):
-        mechanism = ExactEvmClientMechanism(mock_signer)
+        mechanism = ExactPermitEvmClientMechanism(mock_signer)
         payload = await mechanism.create_payment_payload(
             base_requirements,
             "https://api.example.com/resource",
@@ -110,7 +110,7 @@ class TestExactEvmClient:
 
     @pytest.mark.anyio
     async def test_sign_typed_data_called(self, mock_signer, base_requirements, permit_context):
-        mechanism = ExactEvmClientMechanism(mock_signer)
+        mechanism = ExactPermitEvmClientMechanism(mock_signer)
         await mechanism.create_payment_payload(
             base_requirements,
             "https://api.example.com/resource",

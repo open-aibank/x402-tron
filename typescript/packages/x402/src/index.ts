@@ -20,7 +20,7 @@ export * from './http/client.js';
 // Mechanisms
 export * from './mechanisms/index.js';
 
-// EVM Mechanism
+// EVM ExactPermit Mechanism
 export * from './mechanisms/exactEvm.js';
 
 // TRON Signer
