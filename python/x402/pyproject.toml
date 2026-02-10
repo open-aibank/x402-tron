@@ -3,7 +3,7 @@ requires = ["hatchling>=1.18.0,<1.22.0"]
 build-backend = "hatchling.build"
 
 [project]
-name = "x402-tron"
+name = "bankofai-x402"
 version = "0.3.0"
 description = "x402 Payment Protocol SDK for Python"
 readme = "README.md"

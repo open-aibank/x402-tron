@@ -5,16 +5,16 @@ Python SDK for the x402 payment protocol (TRON-only).
 ## Installation
 
 ```bash
-pip install x402-tron
+pip install bankofai-x402
 ```
 
 Optional extras:
 
 ```bash
-pip install "x402-tron[tron]"
-pip install "x402-tron[fastapi]"
-pip install "x402-tron[flask]"
-pip install "x402-tron[all]"
+pip install "bankofai-x402[tron]"
+pip install "bankofai-x402[fastapi]"
+pip install "bankofai-x402[flask]"
+pip install "bankofai-x402[all]"
 ```
 
 ## Quick Start
