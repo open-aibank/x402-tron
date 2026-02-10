@@ -64,7 +64,7 @@ export class ExactTronClientMechanism implements ClientMechanism {
         validBefore: context.meta.validBefore,
       },
       buyer: buyerAddress,
-      caller: requirements.extra?.fee?.feeTo || zeroAddress,
+      caller: requirements.extra?.fee?.caller || zeroAddress,
       payment: {
         payToken: requirements.asset,
         payAmount: requirements.amount,

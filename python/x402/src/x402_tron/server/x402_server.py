@@ -170,6 +170,10 @@ class X402Server:
                     [(r.scheme, r.network, r.asset) for r in exact_reqs],
                 )
                 fee_quotes = await facilitator.fee_quote(exact_reqs)
+                self._logger.info(
+                    "fee_quotes: %s",
+                    [q.model_dump(by_alias=True) for q in fee_quotes],
+                )
                 quote_map: dict[tuple[str, str, str], FeeQuoteResponse] = {
                     (q.scheme, q.network, q.asset): q for q in fee_quotes
                 }
