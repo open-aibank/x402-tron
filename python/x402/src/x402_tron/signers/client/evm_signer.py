@@ -23,10 +23,9 @@ class EvmClientSigner(ClientSigner):
         self._network = network
         self._address = self._derive_address(private_key)
         self._async_web3_clients: dict[str, Any] = {}
-        logger.debug("EvmClientSigner initialized", extra={
-            "address": self._address,
-            "network": network
-        })
+        logger.debug(
+            "EvmClientSigner initialized", extra={"address": self._address, "network": network}
+        )
 
     @classmethod
     def from_private_key(cls, private_key: str, network: str | None = None) -> "EvmClientSigner":
@@ -37,6 +36,7 @@ class EvmClientSigner(ClientSigner):
     def _derive_address(private_key: str) -> str:
         """Derive EVM address from private key"""
         from eth_account import Account
+
         return Account.from_key(private_key).address
 
     def get_address(self) -> str:
@@ -109,11 +109,10 @@ class EvmClientSigner(ClientSigner):
             contract = w3.eth.contract(address=token, abi=ERC20_ABI)
             return await contract.functions.balanceOf(self._address).call()
         except Exception as e:
-            logger.error("Failed to check ERC20 balance", extra={
-                "token": token,
-                "network": network,
-                "error": str(e)
-            })
+            logger.error(
+                "Failed to check ERC20 balance",
+                extra={"token": token, "network": network, "error": str(e)},
+            )
             return 0
 
     async def check_allowance(self, token: str, amount: int, network: str) -> int:
@@ -127,12 +126,10 @@ class EvmClientSigner(ClientSigner):
             contract = w3.eth.contract(address=token, abi=ERC20_ABI)
             return await contract.functions.allowance(self._address, spender).call()
         except Exception as e:
-            logger.error("Failed to check ERC20 allowance", extra={
-                "token": token,
-                "spender": spender,
-                "network": network,
-                "error": str(e)
-            })
+            logger.error(
+                "Failed to check ERC20 allowance",
+                extra={"token": token, "spender": spender, "network": network, "error": str(e)},
+            )
             return 0
 
     async def ensure_allowance(
@@ -161,11 +158,13 @@ class EvmClientSigner(ClientSigner):
             spender = self._get_spender_address(network)
             contract = w3.eth.contract(address=token, abi=ERC20_ABI)
 
-            tx = await contract.functions.approve(spender, 2**256 - 1).build_transaction({
-                'from': self._address,
-                'nonce': await w3.eth.get_transaction_count(self._address),
-                'chainId': await w3.eth.chain_id,
-            })
+            tx = await contract.functions.approve(spender, 2**256 - 1).build_transaction(
+                {
+                    "from": self._address,
+                    "nonce": await w3.eth.get_transaction_count(self._address),
+                    "chainId": await w3.eth.chain_id,
+                }
+            )
 
             signed_tx = w3.eth.account.sign_transaction(tx, private_key=self._private_key)
             tx_hash = await w3.eth.send_raw_transaction(signed_tx.rawTransaction)
@@ -173,7 +172,10 @@ class EvmClientSigner(ClientSigner):
 
             success = receipt.status == 1
             if success:
-                logger.info("ERC20 approval successful", extra={"token": token, "tx_hash": tx_hash.hex()})
+                logger.info(
+                    "ERC20 approval successful",
+                    extra={"token": token, "tx_hash": tx_hash.hex()},
+                )
             return success
         except Exception as e:
             raise InsufficientAllowanceError(f"ERC20 approval transaction failed: {e}")

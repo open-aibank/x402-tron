@@ -1,6 +1,6 @@
 import pytest
 
-from x402_tron.signers.client import TronClientSigner, EvmClientSigner
+from x402_tron.signers.client import EvmClientSigner, TronClientSigner
 
 
 def test_tron_signer_from_private_key():
@@ -58,7 +58,5 @@ async def test_evm_signer_check_allowance():
     signer = EvmClientSigner.from_private_key(private_key)
 
     # Should return 0 when no web3 client available
-    allowance = await signer.check_allowance(
-        "0xTestToken", 1000000, "eip155:1"
-    )
+    allowance = await signer.check_allowance("0xTestToken", 1000000, "eip155:1")
     assert allowance == 0

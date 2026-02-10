@@ -21,10 +21,9 @@ class EvmFacilitatorSigner(FacilitatorSigner):
         self._network = network
         self._address = self._derive_address(private_key)
         self._async_web3_clients: dict[str, Any] = {}
-        logger.debug("EvmFacilitatorSigner initialized", extra={
-            "address": self._address,
-            "network": network
-        })
+        logger.debug(
+            "EvmFacilitatorSigner initialized", extra={"address": self._address, "network": network}
+        )
 
     @classmethod
     def from_private_key(
@@ -37,6 +36,7 @@ class EvmFacilitatorSigner(FacilitatorSigner):
     def _derive_address(private_key: str) -> str:
         """Derive EVM address from private key"""
         from eth_account import Account
+
         return Account.from_key(private_key).address
 
     def get_address(self) -> str:
@@ -50,6 +50,7 @@ class EvmFacilitatorSigner(FacilitatorSigner):
 
         if net not in self._async_web3_clients:
             from web3 import AsyncHTTPProvider, AsyncWeb3
+
             provider_uri = net if net.startswith(("http", "ws")) else None
             self._async_web3_clients[net] = AsyncWeb3(AsyncHTTPProvider(provider_uri))
 
@@ -114,25 +115,27 @@ class EvmFacilitatorSigner(FacilitatorSigner):
 
         try:
             import json
+
             abi_list = json.loads(abi) if isinstance(abi, str) else abi
             contract = w3.eth.contract(address=contract_address, abi=abi_list)
             func = getattr(contract.functions, method)
 
-            tx = await func(*args).build_transaction({
-                'from': self._address,
-                'nonce': await w3.eth.get_transaction_count(self._address),
-                'chainId': await w3.eth.chain_id,
-            })
+            tx = await func(*args).build_transaction(
+                {
+                    "from": self._address,
+                    "nonce": await w3.eth.get_transaction_count(self._address),
+                    "chainId": await w3.eth.chain_id,
+                }
+            )
 
             signed_tx = w3.eth.account.sign_transaction(tx, private_key=self._private_key)
             tx_hash = await w3.eth.send_raw_transaction(signed_tx.rawTransaction)
             return tx_hash.hex()
         except Exception as e:
-            logger.error("Contract write failed", extra={
-                "method": method,
-                "contract": contract_address,
-                "error": str(e)
-            })
+            logger.error(
+                "Contract write failed",
+                extra={"method": method, "contract": contract_address, "error": str(e)},
+            )
             return None
 
     async def wait_for_transaction_receipt(
@@ -151,5 +154,5 @@ class EvmFacilitatorSigner(FacilitatorSigner):
             "hash": tx_hash,
             "blockNumber": str(receipt["blockNumber"]),
             "status": "confirmed" if receipt["status"] == 1 else "failed",
-            "receipt": receipt
+            "receipt": receipt,
         }
