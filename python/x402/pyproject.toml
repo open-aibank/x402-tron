@@ -39,10 +39,13 @@ dev-dependencies = [
 
 [project.optional-dependencies]
 tron = ["tronpy>=0.4.0"]
+evm = ["web3>=6.0.0", "eth-account>=0.8.0"]
 fastapi = ["fastapi>=0.100.0"]
 flask = ["flask>=2.0.0"]
 all = [
     "tronpy>=0.4.0",
+    "web3>=6.0.0",
+    "eth-account>=0.8.0",
     "fastapi>=0.100.0",
     "flask>=2.0.0",
 ]
