@@ -13,37 +13,31 @@ from bankofai.x402.signers.facilitator.base import FacilitatorSigner
 class TronFacilitatorSigner(FacilitatorSigner):
     """TRON facilitator signer implementation"""
 
-    def __init__(self, private_key: str, network: str | None = None) -> None:
+    def __init__(self, private_key: str) -> None:
         clean_key = private_key[2:] if private_key.startswith("0x") else private_key
         self._private_key = clean_key
         self._address = self._derive_address(clean_key)
-        self._network = network
         self._async_tron_clients: dict[str, Any] = {}
 
     @classmethod
-    def from_private_key(
-        cls, private_key: str, network: str | None = None
-    ) -> "TronFacilitatorSigner":
+    def from_private_key(cls, private_key: str) -> "TronFacilitatorSigner":
         """Create signer from private key"""
-        return cls(private_key, network)
+        return cls(private_key)
 
-    def _ensure_async_tron_client(self, network: str | None = None) -> Any:
+    def _ensure_async_tron_client(self, network: str) -> Any:
         """Lazy initialize async tron_client for the given network.
 
         Args:
-            network: Network identifier. Falls back to self._network if None.
+            network: Network identifier (e.g. 'tron:nile', 'tron:mainnet').
         """
-        net = network or self._network
-        if not net:
-            return None
-        if net not in self._async_tron_clients:
+        if network not in self._async_tron_clients:
             try:
                 from bankofai.x402.utils.tron_client import create_async_tron_client
 
-                self._async_tron_clients[net] = create_async_tron_client(net)
+                self._async_tron_clients[network] = create_async_tron_client(network)
             except ImportError:
                 return None
-        return self._async_tron_clients[net]
+        return self._async_tron_clients[network]
 
     @staticmethod
     def _derive_address(private_key: str) -> str:
@@ -162,7 +156,7 @@ class TronFacilitatorSigner(FacilitatorSigner):
         abi: str,
         method: str,
         args: list[Any],
-        network: str | None = None,
+        network: str,
     ) -> str | None:
         """Execute contract transaction on TRON (async).
 
@@ -315,7 +309,7 @@ class TronFacilitatorSigner(FacilitatorSigner):
         self,
         tx_hash: str,
         timeout: int = 60,
-        network: str | None = None,
+        network: str = "",
     ) -> dict[str, Any]:
         """Wait for TRON transaction confirmation (async with 60s default timeout)"""
         client = self._ensure_async_tron_client(network)

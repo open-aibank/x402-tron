@@ -17,21 +17,18 @@ logger = logging.getLogger(__name__)
 class EvmClientSigner(ClientSigner):
     """EVM client signer implementation using web3.py"""
 
-    def __init__(self, private_key: str, network: str | None = None) -> None:
+    def __init__(self, private_key: str) -> None:
         if not private_key.startswith("0x"):
             private_key = "0x" + private_key
         self._private_key = private_key
-        self._network = network
         self._address = self._derive_address(private_key)
         self._async_web3_clients: dict[str, Any] = {}
-        logger.debug(
-            "EvmClientSigner initialized", extra={"address": self._address, "network": network}
-        )
+        logger.debug("EvmClientSigner initialized", extra={"address": self._address})
 
     @classmethod
-    def from_private_key(cls, private_key: str, network: str | None = None) -> "EvmClientSigner":
+    def from_private_key(cls, private_key: str) -> "EvmClientSigner":
         """Create signer from private key."""
-        return cls(private_key, network)
+        return cls(private_key)
 
     @staticmethod
     def _derive_address(private_key: str) -> str:
@@ -43,22 +40,18 @@ class EvmClientSigner(ClientSigner):
     def get_address(self) -> str:
         return self._address
 
-    def _ensure_async_web3_client(self, network: str | None = None) -> Any:
+    def _ensure_async_web3_client(self, network: str) -> Any:
         """Lazy initialize async web3 client for the given network."""
-        net = network or self._network
-        if not net:
-            return None
-
-        if net not in self._async_web3_clients:
+        if network not in self._async_web3_clients:
             from web3 import AsyncHTTPProvider, AsyncWeb3
             from web3.middleware import ExtraDataToPOAMiddleware
 
-            provider_uri = resolve_provider_uri(net)
+            provider_uri = resolve_provider_uri(network)
             w3 = AsyncWeb3(AsyncHTTPProvider(provider_uri))
             w3.middleware_onion.inject(ExtraDataToPOAMiddleware, layer=0)
-            self._async_web3_clients[net] = w3
+            self._async_web3_clients[network] = w3
 
-        return self._async_web3_clients[net]
+        return self._async_web3_clients[network]
 
     async def sign_message(self, message: bytes) -> str:
         """Sign raw message using ECDSA (EIP-191)"""

@@ -19,6 +19,7 @@ import { mainnet, sepolia, bsc, bscTestnet } from 'viem/chains';
 import type { ClientSigner } from '../client/x402Client.js';
 import {
   getPaymentPermitAddress,
+  resolveRpcUrl,
   InsufficientAllowanceError,
   UnsupportedNetworkError,
 } from '../index.js';
@@ -33,16 +34,14 @@ export class EvmClientSigner implements ClientSigner {
   private walletClient: WalletClient<Transport, Chain, Account>;
   private publicClients: Map<number, PublicClient> = new Map();
   private account: Account;
-  private rpcUrl?: string;
 
-  constructor(privateKey: string, rpcUrl?: string) {
+  constructor(privateKey: string) {
     const hexKey = privateKey.startsWith('0x') ? privateKey : `0x${privateKey}`;
     this.account = privateKeyToAccount(hexKey as Hex);
-    this.rpcUrl = rpcUrl;
     this.walletClient = createWalletClient({
       account: this.account,
       chain: mainnet,
-      transport: http(rpcUrl),
+      transport: http(),
     });
   }
 
@@ -84,7 +83,7 @@ export class EvmClientSigner implements ClientSigner {
 
   async checkBalance(token: string, network: string): Promise<bigint> {
     const chainId = this.parseNetworkToChainId(network);
-    const client = this.getPublicClient(chainId);
+    const client = this.getPublicClient(chainId, network);
 
     try {
       return await client.readContract({
@@ -108,7 +107,7 @@ export class EvmClientSigner implements ClientSigner {
     network: string,
   ): Promise<bigint> {
     const chainId = this.parseNetworkToChainId(network);
-    const client = this.getPublicClient(chainId);
+    const client = this.getPublicClient(chainId, network);
     const spender = getPaymentPermitAddress(network) as Hex;
 
     try {
@@ -143,15 +142,16 @@ export class EvmClientSigner implements ClientSigner {
     }
 
     const chainId = this.parseNetworkToChainId(network);
-    const client = this.getPublicClient(chainId);
+    const client = this.getPublicClient(chainId, network);
     const spender = getPaymentPermitAddress(network) as Hex;
     const chain = this.getChain(chainId);
 
     try {
+      const rpcUrl = resolveRpcUrl(network);
       const walletClient = createWalletClient({
         account: this.account,
         chain: chain,
-        transport: http(this.rpcUrl),
+        transport: http(rpcUrl),
       });
 
       const hash = await walletClient.writeContract({
@@ -181,12 +181,13 @@ export class EvmClientSigner implements ClientSigner {
     }
   }
 
-  private getPublicClient(chainId: number): PublicClient {
+  private getPublicClient(chainId: number, network: string): PublicClient {
     let client = this.publicClients.get(chainId);
     if (!client) {
+      const rpcUrl = resolveRpcUrl(network);
       client = createPublicClient({
         chain: this.getChain(chainId),
-        transport: http(this.rpcUrl),
+        transport: http(rpcUrl),
       });
       this.publicClients.set(chainId, client);
     }

@@ -49,7 +49,7 @@ class FacilitatorSigner(ABC):
         abi: str,
         method: str,
         args: list[Any],
-        network: str | None = None,
+        network: str,
     ) -> str | None:
         """
         Execute a contract write transaction.
@@ -71,7 +71,7 @@ class FacilitatorSigner(ABC):
         self,
         tx_hash: str,
         timeout: int = 120,
-        network: str | None = None,
+        network: str = "",
     ) -> dict[str, Any]:
         """
         Wait for transaction confirmation.

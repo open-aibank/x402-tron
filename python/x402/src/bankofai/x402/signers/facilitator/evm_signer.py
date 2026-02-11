@@ -15,23 +15,18 @@ logger = logging.getLogger(__name__)
 class EvmFacilitatorSigner(FacilitatorSigner):
     """EVM facilitator signer implementation using web3.py"""
 
-    def __init__(self, private_key: str, network: str | None = None) -> None:
+    def __init__(self, private_key: str) -> None:
         if not private_key.startswith("0x"):
             private_key = "0x" + private_key
         self._private_key = private_key
-        self._network = network
         self._address = self._derive_address(private_key)
         self._async_web3_clients: dict[str, Any] = {}
-        logger.debug(
-            "EvmFacilitatorSigner initialized", extra={"address": self._address, "network": network}
-        )
+        logger.debug("EvmFacilitatorSigner initialized", extra={"address": self._address})
 
     @classmethod
-    def from_private_key(
-        cls, private_key: str, network: str | None = None
-    ) -> "EvmFacilitatorSigner":
+    def from_private_key(cls, private_key: str) -> "EvmFacilitatorSigner":
         """Create signer from private key"""
-        return cls(private_key, network)
+        return cls(private_key)
 
     @staticmethod
     def _derive_address(private_key: str) -> str:
@@ -43,22 +38,18 @@ class EvmFacilitatorSigner(FacilitatorSigner):
     def get_address(self) -> str:
         return self._address
 
-    def _ensure_async_web3_client(self, network: str | None = None) -> Any:
+    def _ensure_async_web3_client(self, network: str) -> Any:
         """Lazy initialize async web3 client for the given network."""
-        net = network or self._network
-        if not net:
-            return None
-
-        if net not in self._async_web3_clients:
+        if network not in self._async_web3_clients:
             from web3 import AsyncHTTPProvider, AsyncWeb3
             from web3.middleware import ExtraDataToPOAMiddleware
 
-            provider_uri = resolve_provider_uri(net)
+            provider_uri = resolve_provider_uri(network)
             w3 = AsyncWeb3(AsyncHTTPProvider(provider_uri))
             w3.middleware_onion.inject(ExtraDataToPOAMiddleware, layer=0)
-            self._async_web3_clients[net] = w3
+            self._async_web3_clients[network] = w3
 
-        return self._async_web3_clients[net]
+        return self._async_web3_clients[network]
 
     async def verify_typed_data(
         self,
@@ -113,7 +104,7 @@ class EvmFacilitatorSigner(FacilitatorSigner):
         abi: Any,
         method: str,
         args: list[Any],
-        network: str | None = None,
+        network: str,
     ) -> str | None:
         """Execute contract transaction on EVM (async)."""
         w3 = self._ensure_async_web3_client(network)
@@ -151,7 +142,7 @@ class EvmFacilitatorSigner(FacilitatorSigner):
         self,
         tx_hash: str,
         timeout: int = 120,
-        network: str | None = None,
+        network: str = "",
     ) -> dict[str, Any]:
         """Wait for EVM transaction confirmation"""
         w3 = self._ensure_async_web3_client(network)
