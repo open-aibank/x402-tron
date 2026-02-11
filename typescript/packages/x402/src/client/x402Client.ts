@@ -74,10 +74,7 @@ export type PaymentRequirementsSelector = (
  * Return a subset (or reordered list) of the input requirements.
  */
 export interface PaymentPolicy {
-  apply(
-    requirements: PaymentRequirements[],
-    signerResolver?: (scheme: string, network: string) => ClientSigner | null,
-  ): PaymentRequirements[] | Promise<PaymentRequirements[]>;
+  apply(requirements: PaymentRequirements[]): PaymentRequirements[] | Promise<PaymentRequirements[]>;
 }
 
 /** Filter options for selecting payment requirements */
@@ -117,9 +114,20 @@ export class X402Client {
    * @param policy - Function that filters/reorders payment requirements
    * @returns this for method chaining
    */
-  registerPolicy(policy: PaymentPolicy): X402Client {
-    this.policies.push(policy);
+  registerPolicy(policy: PaymentPolicy | { new(client: X402Client): PaymentPolicy }): X402Client {
+    const instance = typeof policy === 'function'
+      ? new (policy as { new(client: X402Client): PaymentPolicy })(this)
+      : policy;
+    this.policies.push(instance);
     return this;
+  }
+
+  /**
+   * Resolve a signer from registered mechanisms for the given scheme+network.
+   */
+  resolveSigner(scheme: string, network: string): ClientSigner | null {
+    const mechanism = this.findMechanism(scheme, network);
+    return mechanism?.getSigner?.() ?? null;
   }
 
   /**
@@ -169,10 +177,7 @@ export class X402Client {
     candidates = candidates.filter(r => this.findMechanism(r.scheme, r.network) !== null);
 
     for (const policy of this.policies) {
-      candidates = await policy.apply(candidates, (scheme, network) => {
-        const mechanism = this.findMechanism(scheme, network);
-        return mechanism?.getSigner?.() ?? null;
-      });
+      candidates = await policy.apply(candidates);
     }
 
     if (candidates.length === 0) {

@@ -6,15 +6,13 @@
 
 import { findByAddress } from '../tokens.js';
 import type { PaymentRequirements } from '../types/index.js';
-import type { ClientSigner, PaymentPolicy } from './x402Client.js';
+import type { PaymentPolicy } from './x402Client.js';
+import type { X402Client } from './x402Client.js';
 
 function getDecimals(req: PaymentRequirements): number {
   const token = findByAddress(req.network, req.asset);
   return token?.decimals ?? 6;
 }
-
-/** Callback that resolves a signer for a given scheme+network */
-export type SignerResolver = (scheme: string, network: string) => ClientSigner | null;
 
 /**
  * Policy that filters out requirements with insufficient balance.
@@ -24,10 +22,10 @@ export type SignerResolver = (scheme: string, network: string) => ClientSigner |
  * and removes requirements the user cannot afford.
  *
  * Signers are auto-resolved from registered mechanisms via the
- * signerResolver callback passed to apply() by X402Client.
+ * X402Client instance passed at construction time.
  *
  * Usage:
- *   x402.registerPolicy(new SufficientBalancePolicy());
+ *   x402.registerPolicy(SufficientBalancePolicy);
  *
  * Requirements whose network has no matching signer are kept as-is
  * (not filtered out), so downstream mechanism matching can still work.
@@ -36,13 +34,16 @@ export type SignerResolver = (scheme: string, network: string) => ClientSigner |
  * caller can raise an appropriate error.
  */
 export class SufficientBalancePolicy implements PaymentPolicy {
-  async apply(
-    requirements: PaymentRequirements[],
-    signerResolver?: SignerResolver,
-  ): Promise<PaymentRequirements[]> {
+  private client: X402Client;
+
+  constructor(client: X402Client) {
+    this.client = client;
+  }
+
+  async apply(requirements: PaymentRequirements[]): Promise<PaymentRequirements[]> {
     const affordable: PaymentRequirements[] = [];
     for (const req of requirements) {
-      const signer = signerResolver ? signerResolver(req.scheme, req.network) : null;
+      const signer = this.client.resolveSigner(req.scheme, req.network);
       if (!signer) {
         // No signer for this network — keep the requirement so mechanism
         // matching can still select it (balance check is best-effort).

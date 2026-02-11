@@ -51,15 +51,8 @@ class PaymentPolicy(Protocol):
     async def apply(
         self,
         requirements: list[PaymentRequirements],
-        signer_resolver: Any = None,
     ) -> list[PaymentRequirements]:
-        """Apply this policy to the given requirements.
-
-        Args:
-            requirements: List of payment requirements to filter.
-            signer_resolver: Optional callback (scheme, network) -> ClientSigner
-                that resolves a signer from registered mechanisms.
-        """
+        """Apply this policy to the given requirements."""
         ...
 
 
@@ -106,24 +99,25 @@ class X402Client:
         self._policies: list[PaymentPolicy] = []
         self._token_strategy = token_strategy
 
-    def register_policy(self, policy: PaymentPolicy) -> "X402Client":
+    def register_policy(
+        self, policy: "type[PaymentPolicy] | PaymentPolicy"
+    ) -> "X402Client":
         """
-        Register a payment policy.
+        Register a payment policy (class or instance).
 
-        Policies are applied in order after mechanism filtering
-        and before token selection. Each policy receives a signer_resolver
-        callback that can resolve signers from registered mechanisms.
+        If a class is passed, it is instantiated with this client as argument.
 
         Args:
-            policy: Policy that filters/reorders payment requirements
+            policy: Policy class or instance
 
         Returns:
             self for method chaining
         """
-        self._policies.append(policy)
+        instance = policy(self) if isinstance(policy, type) else policy
+        self._policies.append(instance)
         return self
 
-    def _resolve_signer(self, scheme: str, network: str) -> Any:
+    def resolve_signer(self, scheme: str, network: str) -> Any:
         """Resolve a signer from registered mechanisms for the given scheme+network."""
         mechanism = self._find_mechanism(scheme, network)
         if mechanism is not None and hasattr(mechanism, "get_signer"):
@@ -189,7 +183,7 @@ class X402Client:
         logger.debug(f"After mechanism filter: {len(candidates)} candidates")
 
         for policy in self._policies:
-            candidates = await policy.apply(candidates, signer_resolver=self._resolve_signer)
+            candidates = await policy.apply(candidates)
             logger.debug(f"After policy: {len(candidates)} candidates")
 
         if not candidates:

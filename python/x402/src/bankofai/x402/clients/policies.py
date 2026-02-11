@@ -5,13 +5,13 @@ Policies are applied in order after mechanism filtering and before token selecti
 """
 
 import logging
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING
 
 from bankofai.x402.tokens import TokenRegistry
 from bankofai.x402.types import PaymentRequirements
 
 if TYPE_CHECKING:
-    from bankofai.x402.signers.client.base import ClientSigner
+    from bankofai.x402.clients.x402_client import X402Client
 
 logger = logging.getLogger(__name__)
 
@@ -29,12 +29,12 @@ class SufficientBalancePolicy:
     this policy checks the user's on-chain balance for each option
     and removes requirements the user cannot afford.
 
-    Signers are auto-resolved from registered mechanisms via a resolver
-    injected by X402Client.register_policy().
+    Signers are auto-resolved from registered mechanisms via the
+    X402Client instance passed at construction time.
 
     Usage::
 
-        client.register_policy(SufficientBalancePolicy())
+        client.register_policy(SufficientBalancePolicy)
 
     Requirements whose network has no matching signer are kept as-is
     (not filtered out), so downstream mechanism matching can still work.
@@ -43,14 +43,16 @@ class SufficientBalancePolicy:
     caller can raise an appropriate error.
     """
 
+    def __init__(self, client: "X402Client") -> None:
+        self._client = client
+
     async def apply(
         self,
         requirements: list[PaymentRequirements],
-        signer_resolver: "Callable[[str, str], ClientSigner | None] | None" = None,
     ) -> list[PaymentRequirements]:
         affordable: list[PaymentRequirements] = []
         for req in requirements:
-            signer = signer_resolver(req.scheme, req.network) if signer_resolver else None
+            signer = self._client.resolve_signer(req.scheme, req.network)
             if signer is None:
                 # No signer for this network — keep the requirement so
                 # mechanism matching can still select it.
